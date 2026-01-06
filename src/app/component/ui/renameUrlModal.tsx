@@ -1,6 +1,10 @@
-// app/component/ui/RenameUrlModal.tsx
+// app/component/ui/renameUrlModal.tsx
+"use client";
+
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Edit3, Link2 } from "lucide-react";
+import { ModernButton } from "./ModernButton";
+import { ModernInput } from "./ModernInput";
 
 interface RenameUrlModalProps {
   urlId: string;
@@ -28,12 +32,9 @@ export const RenameUrlModal: React.FC<RenameUrlModalProps> = ({
     setError(null);
     setIsSubmitting(true);
 
-    // Validate new ID (only allow alphanumeric characters, hyphens, and underscores)
     const validIdPattern = /^[a-zA-Z0-9-_]+$/;
     if (!validIdPattern.test(newShortId)) {
-      setError(
-        "Custom URL can only contain letters, numbers, hyphens, and underscores"
-      );
+      setError("Alphanumeric characters, hyphens, and underscores only");
       setIsSubmitting(false);
       return;
     }
@@ -59,7 +60,6 @@ export const RenameUrlModal: React.FC<RenameUrlModalProps> = ({
         return;
       }
 
-      // Success - close modal and refresh the URL list
       onSuccess();
       onClose();
     } catch (error) {
@@ -68,77 +68,81 @@ export const RenameUrlModal: React.FC<RenameUrlModalProps> = ({
     }
   };
 
+  const domain = typeof window !== 'undefined' ? window.location.origin : '';
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg sm:text-xl font-bold">Rename Short URL</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[200] p-6 animate-in fade-in duration-300">
+      <div className="glass rounded-[2rem] p-8 max-w-md w-full border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20">
+              <Edit3 size={20} className="text-blue-500" />
+            </div>
+            <h3 className="text-xl font-bold text-white tracking-tight">Rename Alias</h3>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-white/10 rounded-full text-gray-500 hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="mb-4 sm:mb-6">
-          <p className="mb-2 text-sm sm:text-base break-words">
-            Current URL:{" "}
-            <span className="font-medium">
-              {window.location.origin}/{currentShortId}
-            </span>
-          </p>
-          <p className="text-xs sm:text-sm text-gray-500 italic">
-            Enter a new custom ID for your short URL. This will change the URL
-            that users visit.
+        <div className="mb-8 space-y-4">
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">Current Link</p>
+            <p className="text-sm text-gray-300 font-medium break-all">
+              {domain}/{currentShortId}
+            </p>
+          </div>
+          <p className="text-xs text-gray-500 font-medium italic px-1">
+            Changing the alias will break the old link. Users must use the new alias to reach the destination.
           </p>
         </div>
 
-        <form onSubmit={handleRename}>
-          <div className="mb-4">
-            <label
-              htmlFor="newShortId"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              New Custom ID
+        <form onSubmit={handleRename} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">
+              New Alias
             </label>
-            <div className="flex items-center flex-wrap sm:flex-nowrap">
-              <span className="text-gray-500 mr-1 text-sm mb-1 sm:mb-0">
-                {window.location.origin}/
-              </span>
-              <input
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold pointer-events-none group-focus-within:text-blue-400 transition-colors">
+                /
+              </div>
+              <ModernInput
                 type="text"
-                id="newShortId"
+                placeholder="Enter new custom ID"
                 value={newShortId}
-                onChange={e => setNewShortId(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                onChange={(e) => setNewShortId(e.target.value)}
+                className="pl-8"
                 required
                 minLength={3}
                 maxLength={30}
               />
             </div>
-            {error &&
-              <p className="text-red-600 text-sm mt-1">
+            {error && (
+              <p className="text-red-500 text-xs font-bold mt-1 ml-1 animate-in slide-in-from-left-2">
                 {error}
-              </p>}
+              </p>
+            )}
           </div>
 
-          <div className="flex justify-between gap-2">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-300 py-2 px-3 sm:px-4 rounded hover:bg-gray-400 text-sm sm:text-base"
+              className="flex-1 py-4 px-6 glass glass-hover rounded-2xl text-white font-bold text-sm transition-all active:scale-95"
               disabled={isSubmitting}
             >
               Cancel
             </button>
-            <button
+            <ModernButton
               type="submit"
-              className="bg-black text-white py-2 px-3 sm:px-4 rounded hover:bg-white hover:text-black disabled:bg-black text-sm sm:text-base"
+              className="flex-1"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Renaming..." : "Rename URL"}
-            </button>
+              {isSubmitting ? "Updating..." : "Update Alias"}
+            </ModernButton>
           </div>
         </form>
       </div>

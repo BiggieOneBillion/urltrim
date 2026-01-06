@@ -1,7 +1,10 @@
 // app/component/ui/DeleteUrlModal.tsx
+"use client";
+
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, AlertTriangle, ShieldAlert } from "lucide-react";
+import { ModernButton } from "./ModernButton";
+import { ModernInput } from "./ModernInput";
 
 interface DeleteUrlModalProps {
   urlId: string;
@@ -21,7 +24,7 @@ export const DeleteUrlModal: React.FC<DeleteUrlModalProps> = ({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-const Router= useRouter()
+
   if (!isOpen) return null;
 
   const handleDelete = async (e: React.FormEvent) => {
@@ -50,57 +53,85 @@ const Router= useRouter()
         return;
       }
 
-      // Success - close modal and refresh the URL list
       onSuccess();
-     // Router.push("/dashboard")
       onClose();
-      
     } catch (error) {
       setError("An unexpected error occurred");
       setIsSubmitting(false);
     }
   };
 
-  return <div className="fixed inset-0 bg-opacity-25 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-black">Delete URL</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[200] p-6 animate-in fade-in duration-300">
+      <div className="glass rounded-[2rem] p-8 max-w-md w-full border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20">
+              <ShieldAlert size={20} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-white tracking-tight">Delete Link</h3>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-white/10 rounded-full text-gray-500 hover:text-white transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className="mb-6">
-          <p className="mb-2">Are you sure you want to delete this URL?</p>
-          <p className="text-sm text-gray-600 mb-2">
-            {shortUrl}
-          </p>
-          <p className="text-sm text-gray-500 italic">
-            This action cannot be undone. The URL will be moved to a temporary
-            storage for 6 months before being permanently deleted.
-          </p>
+        <div className="mb-8 space-y-4">
+          <div className="p-4 bg-red-500/5 rounded-2xl border border-red-500/10">
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Are you sure you want to delete <span className="font-bold text-white break-all">{shortUrl}</span>?
+            </p>
+          </div>
+          
+          <div className="flex items-start gap-3 p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10">
+            <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-gray-400 leading-relaxed font-medium italic">
+              This action cannot be undone. The URL will be archived for 6 months before permanent deletion.
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleDelete}>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Enter your password to confirm
+        <form onSubmit={handleDelete} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">
+              Confirm with Password
             </label>
-            <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" required />
-            {error && <p className="text-red-600 text-sm mt-1">
+            <ModernInput
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            {error && (
+              <p className="text-red-500 text-xs font-bold mt-1 ml-1 animate-in slide-in-from-left-2">
                 {error}
-              </p>}
+              </p>
+            )}
           </div>
 
-          <div className="flex justify-between">
-            <button type="button" onClick={onClose} className="bg-gray-300 py-2 px-4 rounded hover:bg-gray-400" disabled={isSubmitting}>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-4 px-6 glass glass-hover rounded-2xl text-white font-bold text-sm transition-all active:scale-95"
+              disabled={isSubmitting}
+            >
               Cancel
             </button>
-            <button type="submit" className="bg-black text-white py-2 px-4 rounded hover:bg-red-700 disabled:bg-red-400" disabled={isSubmitting}>
-              {isSubmitting ? "Deleting..." : "Delete URL"}
-            </button>
+            <ModernButton
+              type="submit"
+              className="flex-1 !bg-red-600 hover:!bg-red-500 shadow-lg shadow-red-500/20"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Deleting..." : "Delete Permanently"}
+            </ModernButton>
           </div>
         </form>
       </div>
-    </div>;
+    </div>
+  );
 };

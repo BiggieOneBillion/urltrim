@@ -1,19 +1,29 @@
-"use client"
-import React, { useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+// app/component/ui/clickChart.tsx
+"use client";
 
-const ClicksChart = ({ stats }) => {
-  // Process the click data from stats
+import React, { useMemo } from 'react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+
+interface ClicksChartProps {
+  stats: any;
+}
+
+const ClicksChart: React.FC<ClicksChartProps> = ({ stats }) => {
   const clickData = useMemo(() => {
     if (!stats || !stats.stats) return [];
     
-    // Get the click distribution by day from your data
     const clicksByDay = stats.stats.clicksByDay || {};
-    const uniqueVisitorsPerDay = stats.stats.uniqueVisitorsPerDay || {};
     
-    // Convert the object to an array format that Recharts can use
     return Object.entries(clicksByDay).map(([date, clicks]) => {
-      // Format the date for display (e.g., "2025-03-30" to "Mar 30")
       const formattedDate = new Date(date).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric'
@@ -22,47 +32,95 @@ const ClicksChart = ({ stats }) => {
       return {
         date: formattedDate,
         clicks: clicks,
-        // If you have unique visitors data by day, add it here
-        // uniqueVisitors: uniqueVisitorsByDay[date] || 0
+        dateObj: new Date(date)
       };
-    }).sort((a, b) => {
-      // Sort by date to ensure chronological order
-      return new Date(a.dateObj) - new Date(b.dateObj);
-    });
+    }).sort((a: any, b: any) => a.dateObj.getTime() - b.dateObj.getTime());
   }, [stats]);
 
   if (clickData.length === 0) {
     return (
-      <div className="bg-gray-50 p-4 rounded-lg h-64 flex items-center justify-center">
-        <p className="text-gray-500">No click data available</p>
+      <div className="glass p-8 rounded-[2rem] border border-white/5 h-64 flex flex-col items-center justify-center gap-3">
+        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+          <span className="text-gray-600">📊</span>
+        </div>
+        <p className="text-gray-500 font-bold tracking-tight">No activity recorded yet</p>
       </div>
     );
   }
 
-  return (
-    <div className="bg-white p-4 rounded-lg">
-      <h3 className="text-lg font-semibold mb-4">Daily Clicks</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={clickData}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="clicks" fill="black" />
-          {/* If you have unique visitors data: */}
-           <Bar dataKey="uniqueVisitors" fill="red" /> 
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="flex justify-between mt-4 text-sm text-gray-600">
-        <div>
-          <span className="inline-block w-3 h-3 bg-black mr-2"></span>
-          Total Clicks
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="glass !bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl">
+          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <p className="text-lg font-black text-white">{payload[0].value}</p>
+            <p className="text-xs text-gray-400 font-bold mt-1">Clicks</p>
+          </div>
         </div>
-        {/* If you add unique visitors: */}
-         <div>
-          <span className="inline-block w-3 h-3 bg-red-500 mr-2"></span>
-          Unique Visitors
-        </div> 
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-black text-white tracking-tight">Daily Performance</h3>
+          <p className="text-xs text-gray-500 font-bold mt-1 uppercase tracking-widest">Global Interaction Trends</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="text-[10px] font-black text-white uppercase tracking-widest">Total Clicks</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="h-[300px] w-full mt-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={clickData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              vertical={false} 
+              stroke="rgba(255,255,255,0.05)" 
+            />
+            <XAxis 
+              dataKey="date" 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 900 }}
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 900 }}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)', radius: 12 }} />
+            <Bar 
+              dataKey="clicks" 
+              radius={[12, 12, 12, 12]}
+              barSize={32}
+            >
+              {clickData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={`url(#barGradient)`} 
+                  className="transition-all duration-300 hover:opacity-80"
+                />
+              ))}
+            </Bar>
+            <defs>
+              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+                <stop offset="100%" stopColor="#1e3a8a" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

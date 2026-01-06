@@ -1,37 +1,45 @@
-"use client"
+// app/dashboard/detailed-stats/[shortId]/page.tsx
+"use client";
+
 import React, { useEffect, useState } from 'react';
-import Image from "next/image";
-// Add this import at the top
-import { ExtendUrlModal } from "@/app/component/ui/ExtendUrlModal";
-
-
-import DeviceStatisticsTable from "@/app/component/ui/deviceStatisticTable";
-import ReferralsSection from "@/app/component/ui/referralSection";
-import { SuspendUrlModal } from "@/app/component/ui/SuspendUrlModal";
-import { PauseCircle, PlayCircle } from 'lucide-react';
-import ClicksChart from "@/app/component/ui/clickChart"
-import { Spinner2, Alert } from "@/app/component/ui"
 import { useParams, useRouter } from 'next/navigation';
-import GeographicalDistribution from "@/app/component/ui/geographicDistribution"
-import { RenameUrlModal } from "@/app/component/ui/renameUrlModal";
-import { EditOriginalName } from "@/app/component/ui/editOriginalName"
-import { QRCodeSVG } from "qrcode.react"; // Make sure this package is installed
-import { DeleteUrlModal } from "@/app/component/ui/DeleteUrlModal";
-import { handleCopy, handleShare } from "@/app/utilityFunctions";
-
-import {
-  ArrowLeft,
-  Link,
- 
-  Plane,
-  BarChart2,
-  Map,
-  Smartphone,
-  Globe,
-  Clock,
-  TrendingUp,
-  X, Trash2, Copy, QrCode, Share2, RefreshCw, ExternalLink, FilePenLine, FolderPen
+import { QRCodeSVG } from "qrcode.react";
+import { 
+  ArrowLeft, 
+  BarChart2, 
+  Globe, 
+  TrendingUp, 
+  Clock, 
+  ExternalLink, 
+  Trash2, 
+  Copy, 
+  QrCode, 
+  Share2, 
+  FilePenLine, 
+  FolderPen, 
+  PauseCircle, 
+  PlayCircle,
+  MousePointer2,
+  Calendar,
+  Layers,
+  Activity,
+  Navigation,
+  X,
+  Users
 } from 'lucide-react';
+
+import ClicksChart from "@/app/component/ui/clickChart";
+import DeviceStatisticsTable from "@/app/component/ui/deviceStatisticTable";
+import GeographicalDistribution from "@/app/component/ui/geographicDistribution";
+import ReferralsSection from "@/app/component/ui/referralSection";
+import { ExtendUrlModal } from "@/app/component/ui/ExtendUrlModal";
+import { RenameUrlModal } from "@/app/component/ui/renameUrlModal";
+import { EditOriginalName } from "@/app/component/ui/editOriginalName";
+import { DeleteUrlModal } from "@/app/component/ui/DeleteUrlModal";
+import { SuspendUrlModal } from "@/app/component/ui/SuspendUrlModal";
+import { Spinner2 } from "@/app/component/ui";
+import { ModernButton } from "@/app/component/ui/ModernButton";
+import { handleCopy, handleShare } from "@/app/utilityFunctions";
 
 interface UrlStats {
   shortId: string;
@@ -39,8 +47,9 @@ interface UrlStats {
   originalUrl: string;
   createdAt: string;
   expiresAt: string | "No Expire";
-  isSuspended?: boolean; // Add this property
+  isSuspended?: boolean;
   isReferral?: boolean;
+  originalUrlId?: string;
   referrals: Array<{
     name: string;
     shortId: string;
@@ -51,8 +60,6 @@ interface UrlStats {
   }>;
   stats: {
     totalClicks: number;
-    referrersDistribution: any;
-    totalReferrerCount: any;
     uniqueVisitors: number;
     totalCountries: number;
     avgDailyClicks: number;
@@ -63,10 +70,12 @@ interface UrlStats {
     mostClickedCountry: string;
     mostClickedBrowser: string;
     mostClickedOs: string;
-    continentDistribution: any;
     mostClickedCity: string;
-    totalReferralClicks: any;
-    totalOverallClicks: any;
+    continentDistribution: Record<string, number>;
+    referrersDistribution: Record<string, number>;
+    totalReferrerCount: number;
+    totalReferralClicks: number;
+    totalOverallClicks: number;
     topCountries: Array<{ name: string, count: number }>;
     topCities: Array<{ name: string, count: number }>;
     deviceDistribution: Record<string, number>;
@@ -77,70 +86,29 @@ interface UrlStats {
 
 export default function DetailedStats() {
   const router = useRouter();
-  const [showExtendModal, setShowExtendModal] = useState(false);
-
   const { shortId } = useParams();
+  
   const [stats, setStats] = useState<UrlStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const [showQrCode, setShowQrCode] = useState(false);
-  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
-  const [qrCodeSize, setQrCodeSize] = useState("svg");
-    const [refreshConst, setRefreshConst] = useState(0);
+  const [refreshConst, setRefreshConst] = useState(0);
   const [alertMessage, setAlertMessage] = useState("");
+  
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [urlToDelete, setUrlToDelete] = useState<{
-    id: string;
-    url: string;
-  } | null>(null);
-
   const [showRenameModal, setShowRenameModal] = useState(false);
-  const [urlToRename, setUrlToRename] = useState<{
-    id: string;
-    shortId: string;
-  } | null>(null);
   const [showEditOriginalUrl, setShowEditOriginalUrl] = useState(false);
-  const [originalUrlToEdit, setOriginalUrlToEdit] = useState<{
-    id: string;
-    originalUrl: string;
-  } | null>(null);
-const [showSuspendModal, setShowSuspendModal] = useState(false);
-const [urlToSuspend, setUrlToSuspend] = useState<{
-  id: string;
-  url: string;
-  isSuspended: boolean;
-} | null>(null);
- // Add this handler function
-const handleSuspendClick = (shortId: string, shortUrl: string, isSuspended: boolean) => {
-  setUrlToSuspend({
-    id: shortId,
-    url: shortUrl,
-    isSuspended
-  });
-  setShowSuspendModal(true);
-};
-const handleExtendClick = () => {
-  setShowExtendModal(true);
-};
-// Add this success handler
-const handleSuspendSuccess = async() => {
-  const action = urlToSuspend?.isSuspended ? 'reactivated' : 'suspended';
-  setAlertMessage(`URL ${action} successfully`);
-  if (stats && urlToSuspend) {
-    setStats({
-      ...stats,
-      isSuspended: !urlToSuspend.isSuspended
-    });
-  }
-  handleRefresh(); // Refresh the URL list
-}; 
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [qrCodeSize, setQrCodeSize] = useState("svg");
+
   useEffect(() => {
     if (!shortId) return;
 
     const fetchStats = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         const response = await fetch(`/api/stats/${shortId}`);
         const data = await response.json();
 
@@ -148,7 +116,6 @@ const handleSuspendSuccess = async() => {
           throw new Error(data.error || 'Failed to fetch URL stats');
         }
         setStats(data);
-        console.log(stats)
       } catch (error) {
         setError(error instanceof Error ? error.message : "An unknown error occurred");
       } finally {
@@ -158,644 +125,316 @@ const handleSuspendSuccess = async() => {
     fetchStats();
   }, [shortId, refreshConst]);
 
-  // Handle delete button click
-  const handleDeleteClick = (shortId: string, shortUrl: string) => {
-    setUrlToDelete({
-      id: shortId,
-      url: shortUrl
-    });
-    setShowDeleteModal(true);
-  };
-
   const handleRefresh = () => {
-    setRefreshConst(refreshConst + 1);
-    setLoading(true);
+    setRefreshConst(prev => prev + 1);
   };
 
- 
-
-  // Handle successful deletion
   const handleDeleteSuccess = () => {
-     setAlertMessage("URL deleted successfully");
-    router.push("/dashboard")
-    handleRefresh(); // Refresh the URL list
-   
+    router.push("/dashboard");
   };
 
-  // Handle rename button click
-  const handleRenameClick = (shortId: string) => {
-    setUrlToRename({
-      id: shortId,
-      shortId: shortId
-    });
-    setShowRenameModal(true);
-  };
-
-  // Handle rename button click
-  const handleEditOriginalUrlClick = (originalUrl: string) => {
-    console.log(originalUrl)
-    setOriginalUrlToEdit({
-      id: originalUrl,
-      originalUrl: originalUrl
-    });
-    setShowEditOriginalUrl(true);
-  };
-
-  // Handle successful operation
   const handleOperationSuccess = (message: string) => {
-    handleRefresh(); // Refresh the URL list
     setAlertMessage(message);
+    setTimeout(() => setAlertMessage(""), 3000);
+    handleRefresh();
   };
 
-  function getFaviconUrl(originalUrl: string) {
-    try {
-      const urlObject = new URL(originalUrl);
-      const domain = urlObject.hostname;
-
-      // Try DuckDuckGo's favicon service first
-      const duckDuckGoUrl = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
-
-      // Fallback to Google's favicon service if DuckDuckGo fails
-      const googleUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-
-      // Return the DuckDuckGo URL, but handle errors in the component
-      return duckDuckGoUrl;
-    } catch (error) {
-      console.error("Invalid URL:", originalUrl, error);
-      return "/default-favicon.png"; // Return a default favicon from your public folder
-    }
-  }
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diffInDays < 1) {
-      // Less than a day ago
-      const diffInMinutes = Math.floor(
-        (now.getTime() - date.getTime()) / (1000 * 60)
-      );
-      if (diffInMinutes < 60) {
-        return `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`;
-      } else {
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`;
-      }
-    } else if (diffInDays < 7) {
-      // Less than a week ago
-      return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`;
-    } else {
-      // More than a week ago
-      return date.toLocaleDateString();
+  const handleCopyUrl = async (url: string) => {
+    const success = await handleCopy(url);
+    if (success) {
+      setCopySuccess(url);
+      setTimeout(() => setCopySuccess(null), 2000);
     }
   };
 
-  const handleQrCodeClick = (size: string) => {
-    setQrCodeSize(size);
-    setShowQrCode(true);
-  };
-
-  const downloadQrCode = () => {
+  const handleDownloadQr = () => {
     const svg = document.querySelector(".qr-code-container svg");
     if (!svg) return;
 
     if (qrCodeSize === "svg") {
-      // Download as SVG
       const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], {
-        type: "image/svg+xml;charset=utf-8"
-      });
+      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
       const svgUrl = URL.createObjectURL(svgBlob);
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = svgUrl;
-      downloadLink.download = "qrcode.svg";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(svgUrl);
+      const link = document.createElement("a");
+      link.href = svgUrl;
+      link.download = `qrcode-${shortId}.svg`;
+      link.click();
     } else {
-      // For PNG, we need to convert SVG to canvas first
       const canvas = document.createElement("canvas");
       const width = qrCodeSize === "png1200" ? 1200 : 300;
       canvas.width = width;
       canvas.height = width;
-
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Could not get canvas context");
-        return;
-      }
-      const img = document.createElement("img");
-      img.width = width;
-      img.height = width;
+      if (!ctx) return;
+      
+      const img = new Image();
       const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], {
-        type: "image/svg+xml;charset=utf-8"
-      });
+      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
       const svgUrl = URL.createObjectURL(svgBlob);
-
+      
       img.onload = () => {
         ctx.drawImage(img, 0, 0, width, width);
-        URL.revokeObjectURL(svgUrl);
-
         const pngUrl = canvas.toDataURL("image/png");
-        const downloadLink = document.createElement("a");
-        downloadLink.href = pngUrl;
-        downloadLink.download = `qrcode${qrCodeSize === "png1200"
-          ? "-1200"
-          : ""}.png`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = `qrcode-${shortId}.png`;
+        link.click();
+        URL.revokeObjectURL(svgUrl);
       };
-
       img.src = svgUrl;
     }
   };
 
-  const handleUrlCopy = async (url: string) => {
-    try {
-      // Now we handle the state here after calling the utility function
-      const success = await handleCopy(url);
-      if (success) {
-        setCopySuccess(url);
-        setTimeout(() => setCopySuccess(null), 2000);
-      } else {
-        setError("Copy failed. Please select and copy the URL manually.");
-      }
-    } catch (err) {
-      console.error("Copy failed:", err);
-      setError("Copy failed. Please select and copy the URL manually.");
-    }
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return "just now";
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return date.toLocaleDateString();
   };
 
-  const handleUrlShare = async (url: string) => {
-    try {
-      const success = await handleShare(url);
-      if (success === false) {
-        setAlertMessage("Sharing failed. URL copied to clipboard instead.");
-        // Fall back to copy
-        handleUrlCopy(url);
-      }
-    } catch (err) {
-      console.error("Share failed:", err);
-      // Fallback to copy
-      handleUrlCopy(url);
-    }
-  };
+  if (loading && !stats) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center">
+        <div className="bg-mesh" />
+        <div className="flex flex-col items-center gap-4">
+          <Spinner2 color="white" />
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Assembling Analytics</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleUrlQrCode = (url: string) => {
-    setSelectedUrl(url);
-    setShowQrCode(true);
-  };
-  const clearError = () => {
-    setError(null);
-  };
-  const truncateUrl = (url: string, maxLength = 40) => {
-    return url.length > maxLength ? url.substring(0, maxLength) + "..." : url;
-  };
   return (
-    <div className="min-h-screen bg-gray-100 p-6 px-2 text-black">
-      {/* Navigation */}
-      <nav className="bg-black p-4 fixed top-0 left-0 w-full z-50 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1
-            onClick={() => router.push("/dashboard")}
-            className="text-3xl font-bold tracking-wide text-white emblema-one-regular cursor-pointer">
-
-            URLTRIM
-          </h1>
+    <div className="min-h-screen relative pb-24 overflow-x-hidden">
+      <div className="bg-mesh" />
+      
+      {/* Top Nav / Back */}
+      <nav className="fixed top-0 left-0 w-full z-50 p-6 md:px-12 flex items-center justify-between">
+         <ModernButton 
+          variant="secondary" 
+          onClick={() => router.push("/dashboard")}
+          className="!px-4 !py-2.5 rounded-2xl group"
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="hidden sm:inline">Back</span>
+        </ModernButton>
+        <div className="glass px-6 py-2 rounded-full border border-white/5 hidden md:block">
+          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tracking Identity: <span className="text-blue-400">{shortId}</span></p>
         </div>
       </nav>
 
-      {/* Back Button */}
-      <div
-        onClick={() => router.push("/dashboard")}
-        className="fixed top-20 left-6 flex items-center cursor-pointer hover:text-blue-600"
-      >
-        <ArrowLeft className="mr-2" /> Back
-      </div>
-
-      {loading && <div className="flex justify-center items-center h-64">
-        <Spinner2 color="black" />
-      </div>}
-      {error && <div className="text-red-500 text-center mt-20">{error}</div>}
-
-
-      {/* Main Content */}
-      {stats && <div className="container montserrat mx-auto mt-32 space-y-8">
-        {/* URL Information */}
-        <div className='flex  flex-col  justify-center, align-center w-full'>
-          <h2 className="font-bold md:text-2xl text-xl">YOUR URL PERFORMANCE</h2>
-          <div className="flex flex-wrap mt-3 gap-1">
-            <button
-              onClick={() => handleEditOriginalUrlClick(stats.originalUrl)}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
-            >
-              <FilePenLine size={18} />
-            </button>
-
-            <button
-              onClick={() => handleRenameClick(stats.shortId)}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
-            >
-            <FolderPen size={18} />
-            </button>
-
-            <button
-              onClick={() => handleUrlQrCode(stats.shortUrl)}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
-            >
-              <QrCode size={18}/>
-            </button>
-            <button
-              onClick={() => handleUrlShare(stats.shortUrl)}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
-            >
-              <Share2 size={18}/>
-            </button>
-            <button
-              onClick={() => handleUrlCopy(stats.shortUrl)}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
-            >
-              {copySuccess === stats.shortUrl
-                ? "Copied!"
-                : <Copy size={18}/>}
-            </button>
-            <button
-              onClick={() =>
-                handleDeleteClick(stats.shortId, stats.shortUrl)}
-              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
-            >
-              <Trash2 size={18} />
-            </button>
-            <button
-  onClick={() => handleSuspendClick(stats.shortId, stats.shortUrl, stats.isSuspended || false)}
-  className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
->
-  {stats.isSuspended ? <PlayCircle size={18} /> : <PauseCircle size={18} />}
-</button>
-<button
-  onClick={handleExtendClick}
-  className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
->
-  <Clock size={18} />
-</button>
-
-          </div>
-        </div>
-        <div className="  px-0 py-3">
-          <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center justify-center">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center">
-  <Link className="mr-3" /> {stats?.shortId}
-  {stats.isReferral ? (
-    <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-      Referral URL
-    </span>
-  ) : (
-    <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-      Original URL
-    </span>
-  )}
-</h2>
-              <p className="text-gray-600">{truncateUrl(stats.originalUrl)}</p>
-               {stats.isReferral && stats.originalUrlId && (
-        <p className="text-sm text-blue-600 mt-1">
-          This is a referral link for another URL
-        </p>
-      )}
-            </div>
-            <div className="text-right mt-3">
-               <p>
-    Expires: {stats.expiresAt === "No Expire" ? "Never" : 
-      new Date(stats.expiresAt) < new Date() ? 
-        <span className="text-red-500">Expired on {new Date(stats.expiresAt).toLocaleDateString()}</span> : 
-        new Date(stats.expiresAt).toLocaleDateString()
-    }
-    {stats.isSuspended && <span className="ml-2 text-red-500">(Suspended)</span>}
-  </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Overview Statistics */}
-           <h2 className="mt-4  text-xl font-bold">Overview</h2>
-        <div className="grid md:grid-cols-4 md:gap-6 gap-3">
-       
-          <StatCard
-            icon={<BarChart2 color="black" />}
-            title="Direct Clicks"
-            value={stats.stats.totalClicks.toString()}
-          />
-          <StatCard
-            icon={<BarChart2 color="black" />}
-            title="Referral Clicks"
-            value={stats.stats.totalReferralClicks.toString()}
-          />
-          <StatCard
-            icon={<BarChart2 color="black" />}
-            title="Total Clicks"
-            value={stats.stats.totalOverallClicks.toString()}
-          />
-          <StatCard
-            icon={<Globe color="black" />}
-            title="Unique Visitors"
-            value={stats.stats.uniqueVisitors.toString()}
-          />
-          <StatCard
-            icon={<TrendingUp color="black" />}
-            title="Avg Daily Clicks"
-            value={stats.stats.avgDailyClicks.toFixed(1)}
-          />
-           <StatCard
-            icon={<Plane color="black" />}
-            title="Countries"
-            value={stats.stats.totalCountries.toString() || "0"}
-          />
-          <StatCard
-            icon={<Clock color="black" />}
-            title="CreatedAt"
-            value={formatTimeAgo(stats.createdAt)}
-          />
-        </div>
-
-     {/* Update the existing Click Analytics section in DetailedStats.tsx */}
-<h2 className="text-xl font-bold mt-4">Click Analytics</h2>
-<div className="grid md:grid-cols-2 md:gap-6 gap-3">
-  <ClicksChart stats={stats} />
-  <div className="bg-white shadow-md rounded-lg p-6">
-    <h3 className="text-xl font-bold mb-4">Click Insights</h3>
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <h5 className="text-gray-600">Peak Day</h5>
-        <span className="font-semibold">{stats.stats.peakDay || "No data"}</span>
-      </div>
-      <div>
-        <h5 className="text-gray-600">Last Clicked</h5>
-        <span className="font-semibold">
-          {stats.stats.lastClicked 
-            ? formatTimeAgo(stats.stats.lastClicked)
-            : "Never"}
-        </span>
-      </div>
-      <div>
-        <h5 className="text-gray-600">Avg Daily Clicks</h5>
-        <span className="font-semibold">{stats.stats.avgDailyClicks.toFixed(1)}</span>
-      </div>
-      <div>
-        <h5 className="text-gray-600">Most Active IP</h5>
-        <span className="font-semibold">{stats.stats.mostClickedIp || "None"}</span>
-      </div>
-    </div>
-    
-    <div className="mt-6">
-      <h4 className="font-medium text-gray-700 mb-2">Top Locations</h4>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <h5 className="text-gray-600">Top Country</h5>
-          <span className="font-semibold">{stats.stats.mostClickedCountry || "Unknown"}</span>
-        </div>
-        <div>
-          <h5 className="text-gray-600">Top City</h5>
-          <span className="font-semibold">{stats.stats.mostClickedCity || "Unknown"}</span>
-        </div>
-      </div>
-    </div>
-    
-    <div className="mt-6">
-      <h4 className="font-medium text-gray-700 mb-2">Top Devices</h4>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <h5 className="text-gray-600">Device</h5>
-          <span className="font-semibold">{stats.stats.mostClickedDevice || "Unknown"}</span>
-        </div>
-        <div>
-          <h5 className="text-gray-600">Browser</h5>
-          <span className="font-semibold">{stats.stats.mostClickedBrowser || "Unknown"}</span>
-        </div>
-        <div>
-          <h5 className="text-gray-600">OS</h5>
-          <span className="font-semibold">{stats.stats.mostClickedOs || "Unknown"}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-{/* Place this right after your "Detailed Breakdowns" section */}
-<h2 className="text-xl font-bold mt-8">Geographical Distribution</h2>
-<GeographicalDistribution 
-  stats={{
-    ...stats,
-    stats: {
-      ...stats.stats,
-      continentDistribution: (typeof stats.stats.continentDistribution === 'object' ? stats.stats.continentDistribution : {}) as Record<string, number>,
-      countryDetails: stats.stats.topCountries.map(country => ({
-        country: country.name,
-        count: country.count,
-        percentage: ((country.count / stats.stats.totalClicks) * 100).toFixed(1) + '%'
-      }))
-    }
-  }} 
-/>
-
-<h2 className="text-xl font-bold mt-8">Devices</h2>
-<div className="mb-6">
-  <DeviceStatisticsTable deviceDistribution={stats.stats.deviceDistribution} />
-</div>
-       {/* Add the new Referrals Section */}
-{stats.referrals && stats.referrals.length > 0 ?
-<ReferralsSection 
-  stats={{
-    
-    referrersDistribution: stats.stats.referrersDistribution || {},
-    totalReferrerCount: stats.stats.totalReferrerCount || 0
-  }}
-  allReferrals={Array.isArray(stats.referrals) ? stats.referrals : []} 
-/>:null}
-      
-      </div>}
-      {showQrCode &&
-        selectedUrl &&
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">QR Code for your URL</h3>
-              <button
-                onClick={() => setShowQrCode(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={20} />
-              </button>
+      {stats && (
+        <main className="container mx-auto px-6 pt-32 space-y-12">
+          {/* Header Section */}
+          <div className="flex flex-col xl:flex-row gap-8 items-start justify-between">
+            <div className="space-y-4 max-w-2xl">
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter truncate max-w-[300px] md:max-w-none">
+                  {stats.shortId}
+                </h1>
+                {stats.isReferral ? (
+                  <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-black text-blue-400 uppercase tracking-widest">Referral Mode</span>
+                ) : (
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-400 uppercase tracking-widest">Base Link</span>
+                )}
+              </div>
+              <div className="group relative">
+                <p className="text-lg text-gray-400 font-medium break-all max-w-xl group-hover:text-gray-200 transition-colors">
+                  {stats.originalUrl}
+                </p>
+                <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
             </div>
 
-            <div className="flex justify-center mb-4 qr-code-container">
-              <QRCodeSVG
-                value={selectedUrl || ""}
-                size={250}
-                level={"H"}
-                includeMargin={true}
+            <div className="flex flex-wrap gap-2">
+              <HeaderActionButton onClick={() => setShowEditOriginalUrl(true)} icon={<FilePenLine size={18} />} label="Source" />
+              <HeaderActionButton onClick={() => setShowRenameModal(true)} icon={<FolderPen size={18} />} label="Alias" />
+              <HeaderActionButton onClick={() => setShowQrCode(true)} icon={<QrCode size={18} />} label="QR" />
+              <HeaderActionButton onClick={() => handleShare(stats.shortUrl)} icon={<Share2 size={18} />} label="Share" />
+              <HeaderActionButton 
+                onClick={() => handleCopyUrl(stats.shortUrl)} 
+                icon={copySuccess === stats.shortUrl ? <span className="text-[10px] font-black text-green-400">Copied</span> : <Copy size={18} />} 
+                label="Copy" 
               />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <button
-                onClick={() => handleQrCodeClick("svg")}
-                className={`p-2 rounded ${qrCodeSize === "svg"
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200"}`}
-              >
-                SVG
-              </button>
-              <button
-                onClick={() => handleQrCodeClick("png")}
-                className={`p-2 rounded ${qrCodeSize === "png"
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200"}`}
-              >
-                PNG
-              </button>
-              <button
-                onClick={() => handleQrCodeClick("png1200")}
-                className={`p-2 rounded ${qrCodeSize === "png1200"
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-200"}`}
-              >
-                PNG 1200
-              </button>
-            </div>
-
-            <div className="flex justify-between">
-              <button
-                onClick={downloadQrCode}
-                className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-              >
-                Download
-              </button>
-              <button
-                onClick={() => setShowQrCode(false)}
-                className="bg-gray-300 py-2 px-4 rounded hover:bg-gray-400"
-              >
-                Close
-              </button>
+              <HeaderActionButton 
+                onClick={() => setShowSuspendModal(true)} 
+                icon={stats.isSuspended ? <PlayCircle size={18} className="text-emerald-400" /> : <PauseCircle size={18} className="text-amber-400" />} 
+                label={stats.isSuspended ? "Start" : "Stop"} 
+              />
+              <HeaderActionButton onClick={() => setShowExtendModal(true)} icon={<Clock size={18} />} label="Time" />
+              <HeaderActionButton onClick={() => setShowDeleteModal(true)} icon={<Trash2 size={18} className="text-red-400" />} label="Purge" className="!bg-red-500/5 hover:!bg-red-500/10 border-red-500/10" />
             </div>
           </div>
-        </div>}
-      {/* Delete URL Modal */}
-      {showDeleteModal &&
-        urlToDelete &&
-        <DeleteUrlModal
-          urlId={urlToDelete.id}
-          shortUrl={urlToDelete.url}
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setUrlToDelete(null);
-          }}
-          onSuccess={handleDeleteSuccess}
-        />}
-      {showSuspendModal &&
-  urlToSuspend &&
-  <SuspendUrlModal
-    urlId={urlToSuspend.id}
-    shortUrl={urlToSuspend.url}
-    isSuspended={urlToSuspend.isSuspended}
-    isOpen={showSuspendModal}
-    onClose={() => {
-      setShowSuspendModal(false);
-      setUrlToSuspend(null);
-    }}
-    onSuccess={handleSuspendSuccess}
-  />}
-      {/* Rename URL Modal */}
-      {showRenameModal &&
-        urlToRename &&
-        <RenameUrlModal
-          urlId={urlToRename.id}
-          currentShortId={urlToRename.shortId}
-          isOpen={showRenameModal}
-          onClose={() => {
-            setShowRenameModal(false);
-            setUrlToRename(null);
-          }}
-          onSuccess={() => handleOperationSuccess("URL renamed successfully")}
-        />}
-      {showEditOriginalUrl &&
-        originalUrlToEdit &&
-        <EditOriginalName
-          urlId={originalUrlToEdit.id}
-          currentOriginalName={originalUrlToEdit.originalUrl}
-          isOpen={showEditOriginalUrl}
-          onClose={() => {
-            setShowEditOriginalUrl(false);
-            setOriginalUrlToEdit(null);
-          }}
-          onSuccess={() => handleOperationSuccess("Original Url Changed  successfully")}
-        />}
-        {showExtendModal && (
-  <ExtendUrlModal
-    urlId={stats.shortId}
-    currentExpiry={stats.expiresAt}
-    onClose={() => setShowExtendModal(false)}
-    onSuccess={handleOperationSuccess}
-  />
-)}
 
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <MetricCard label="Global Volume" value={stats.stats.totalOverallClicks} icon={<Layers size={16} className="text-blue-500" />} />
+            <MetricCard label="Direct Hits" value={stats.stats.totalClicks} icon={<MousePointer2 size={16} className="text-purple-500" />} />
+            <MetricCard label="Acquisitions" value={stats.stats.totalReferralClicks} icon={<Share2 size={16} className="text-pink-500" />} />
+            <MetricCard label="Unique Entities" value={stats.stats.uniqueVisitors} icon={<Users size={16} className="text-emerald-500" />} />
+            <MetricCard label="Daily Pulse" value={stats.stats.avgDailyClicks.toFixed(1)} icon={<Activity size={16} className="text-amber-500" />} />
+            <MetricCard label="Jurisdictions" value={stats.stats.totalCountries} icon={<Globe size={16} className="text-cyan-500" />} />
+            <MetricCard label="Longevity" value={formatTimeAgo(stats.createdAt)} icon={<Calendar size={16} className="text-indigo-500" />} />
+          </div>
+
+          {/* Secondary Stats & Chart */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2">
+              <ClicksChart stats={stats} />
+            </div>
+            <div className="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col gap-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <TrendingUp size={20} className="text-amber-500" />
+                </div>
+                <h3 className="text-xl font-black text-white tracking-tight">Signal Analysis</h3>
+              </div>
+              
+              <div className="space-y-6">
+                <InsightItem label="Peak Velocity" value={stats.stats.peakDay || "Inert"} icon={<Activity size={14} />} />
+                <InsightItem label="Last Transmission" value={stats.stats.lastClicked ? formatTimeAgo(stats.stats.lastClicked) : "Remote"} icon={<Clock size={14} />} />
+                <InsightItem label="Dominant IP" value={stats.stats.mostClickedIp || "Hidden"} icon={<Navigation size={14} />} />
+                <div className="pt-4 border-t border-white/5">
+                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4">Top Vectors</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <VectorBox label="Nation" value={stats.stats.mostClickedCountry} />
+                    <VectorBox label="Metro" value={stats.stats.mostClickedCity} />
+                    <VectorBox label="Client" value={stats.stats.mostClickedBrowser} />
+                    <VectorBox label="Kernel" value={stats.stats.mostClickedOs} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Advanced Visualizations */}
+          <GeographicalDistribution 
+            stats={{
+              ...stats,
+              stats: {
+                ...stats.stats,
+                continentDistribution: stats.stats.continentDistribution || {},
+                countryDetails: stats.stats.topCountries.map(c => ({
+                  country: c.name,
+                  count: c.count,
+                  percentage: ((c.count / (stats.stats.totalOverallClicks || 1)) * 100).toFixed(1)
+                }))
+              }
+            }} 
+          />
+
+          <div className="grid grid-cols-1 gap-12">
+             <DeviceStatisticsTable deviceDistribution={stats.stats.deviceDistribution} />
+             {stats.referrals && stats.referrals.length > 0 && (
+               <ReferralsSection 
+                stats={{
+                  referrersDistribution: stats.stats.referrersDistribution || {},
+                  totalReferrerCount: stats.stats.totalReferrerCount || 0,
+                  totalClicks: stats.stats.totalClicks,
+                  totalOverallClicks: stats.stats.totalOverallClicks,
+                  totalReferralClicks: stats.stats.totalReferralClicks
+                }}
+                allReferrals={stats.referrals}
+               />
+             )}
+          </div>
+        </main>
+      )}
+
+      {/* Modals */}
+      {showQrCode && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] p-6">
+          <div className="glass rounded-[2.5rem] p-10 max-w-sm w-full animate-in zoom-in-95 duration-300 flex flex-col items-center">
+            <div className="flex justify-between items-center w-full mb-8">
+              <h3 className="text-xl font-black text-white">Identity Scan</h3>
+              <button onClick={() => setShowQrCode(false)} className="p-2 hover:bg-white/10 rounded-full text-gray-400"><X size={20} /></button>
+            </div>
+            <div className="bg-white p-6 rounded-3xl mb-8 qr-code-container shadow-2xl">
+              <QRCodeSVG value={stats?.shortUrl || ""} size={200} level="H" includeMargin />
+            </div>
+            <div className="grid grid-cols-3 gap-2 w-full mb-8">
+              {['svg', 'png', 'png1200'].map(size => (
+                <button 
+                  key={size}
+                  onClick={() => setQrCodeSize(size)}
+                  className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${qrCodeSize === size ? "bg-blue-500 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10"}`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+            <ModernButton onClick={handleDownloadQr} className="w-full">Download Identity</ModernButton>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && stats && (
+        <DeleteUrlModal urlId={stats.shortId} shortUrl={stats.shortUrl} isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} onSuccess={handleDeleteSuccess} />
+      )}
+      {showRenameModal && stats && (
+        <RenameUrlModal urlId={stats.shortId} currentShortId={stats.shortId} isOpen={showRenameModal} onClose={() => setShowRenameModal(false)} onSuccess={() => handleOperationSuccess("Alias modified")} />
+      )}
+      {showEditOriginalUrl && stats && (
+        <EditOriginalName urlId={stats.shortId} currentOriginalName={stats.originalUrl} isOpen={showEditOriginalUrl} onClose={() => setShowEditOriginalUrl(false)} onSuccess={() => handleOperationSuccess("Source re-routed")} />
+      )}
+      {showSuspendModal && stats && (
+        <SuspendUrlModal urlId={stats.shortId} shortUrl={stats.shortUrl} isSuspended={!!stats.isSuspended} isOpen={showSuspendModal} onClose={() => setShowSuspendModal(false)} onSuccess={() => handleOperationSuccess(stats.isSuspended ? "Reactivated" : "Suspended")} />
+      )}
+      {showExtendModal && stats && (
+        <ExtendUrlModal urlId={stats.shortId} currentExpiry={stats.expiresAt} onClose={() => setShowExtendModal(false)} onSuccess={() => handleOperationSuccess("TTL updated")} />
+      )}
     </div>
-
   );
 }
 
-// Utility Components
-const StatCard = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) => (
-  <div className="bg-white shadow-md rounded-lg p-6 flex items-center">
-    <div className="mr-4 text-blue-500">{icon}</div>
+// Subcomponents
+const HeaderActionButton = ({ onClick, icon, label, className = "" }: { onClick: () => void, icon: React.ReactNode, label: string, className?: string }) => (
+  <button 
+    onClick={onClick}
+    className={`flex flex-col items-center gap-1.5 p-3 px-4 glass glass-hover rounded-2xl transition-all active:scale-90 group ${className}`}
+  >
+    <div className="text-gray-400 group-hover:text-white transition-colors">
+      {icon}
+    </div>
+    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300 transition-colors">{label}</span>
+  </button>
+);
+
+const MetricCard = ({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) => (
+  <div className="glass p-6 rounded-3xl border border-white/5 flex flex-col gap-4 group hover:border-white/10 transition-colors">
+    <div className="flex items-center justify-between">
+      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+        {icon}
+      </div>
+    </div>
     <div>
-      <p className="text-gray-600">{title}</p>
-      <h3 className="text-2xl font-bold">{value}</h3>
+      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</p>
+      <h4 className="text-xl font-black text-white tracking-tighter group-hover:text-blue-400 transition-colors">{value}</h4>
     </div>
   </div>
 );
 
-const DistributionCard = ({ title, icon, distribution }: { title: string, icon: React.ReactNode, distribution: Record<string, number> }) => (
-  <div className="bg-white shadow-md rounded-lg p-6">
-    <div className="flex items-center mb-4">
-      <div className="mr-4 text-blue-500">{icon}</div>
-      <h3 className="text-xl font-bold">{title}</h3>
+const InsightItem = ({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) => (
+  <div className="flex items-center justify-between group">
+    <div className="flex items-center gap-3">
+      <div className="text-gray-600 group-hover:text-blue-400 transition-colors">{icon}</div>
+      <span className="text-xs font-bold text-gray-500 uppercase tracking-tight">{label}</span>
     </div>
-    <div>
-      {Object.entries(distribution).map(([name, count]) => (
-        <div key={name} className="flex justify-between mb-2">
-          <span>{name}</span>
-          <span className="font-bold">{count}</span>
-        </div>
-      ))}
-    </div>
+    <span className="text-sm font-black text-white tracking-tight">{value}</span>
   </div>
 );
 
-const TopListCard: React.FC<{
-  title: string;
-  icon: React.ReactNode;
-  items: Array<{ name: string; count: number }>;
-}> = ({ title, icon, items }) => (
-  <div className="bg-white shadow-md rounded-lg p-6">
-    <div className="flex items-center mb-4">
-      <div className="mr-4 text-blue-500">{icon}</div>
-      <h3 className="text-xl font-bold">{title}</h3>
-    </div>
-    <div>
-      {items.map((item, index) => (
-        <div key={index} className="flex justify-between mb-2">
-          <span>{item.name}</span>
-          <span className="font-bold">{item.count}</span>
-        </div>
-      ))}
-    </div>
+const VectorBox = ({ label, value }: { label: string, value: string }) => (
+  <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
+    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">{label}</p>
+    <p className="text-xs font-black text-gray-300 truncate">{value || 'N/A'}</p>
   </div>
 );

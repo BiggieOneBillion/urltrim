@@ -1,33 +1,45 @@
 import { useEffect } from "react";
+import { X } from "lucide-react";
 
 export default function SlidePanel({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
-  useEffect(
-    () => {
-      if (isOpen) {
-        document.body.style.overflow = "hidden"; // Prevent scrolling when panel is open
-      } else {
-        document.body.style.overflow = "auto";
-      }
-    },
-    [isOpen]
-  );
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [isOpen]);
 
   return (
     <div
-      className={`fixed inset-0 z-50 h-full  transition-transform duration-300 ease-in-out  ${isOpen
-        ? "translate-x-0"
-        : "translate-x-full"}`}
+      className={`fixed inset-0 z-[100] transition-opacity duration-300 ease-in-out ${
+        isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}
     >
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-opacity-50"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="absolute right-0 h-full w-full md:w-1/2 bg-white shadow-lg p-0 md:p-2">
-        <button onClick={onClose} className="text-gray-600 cursor-pointer hover:text-gray-900 p-2 mt-2 ml-2 md:mt-0 md:ml-0 border-2 border-solid rounded-md">
-          ✕ Close
-        </button>
-        <div className="mt-3 ">
-          {children}
+      
+      {/* Panel Content */}
+      <div className={`absolute right-0 h-full w-full md:w-[600px] glass border-l border-white/10 shadow-2xl transition-transform duration-500 ease-out ${
+        isOpen ? "translate-x-0" : "translate-x-full"
+      }`}>
+        <div className="h-full flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <h2 className="text-xl font-bold text-white">Details</h2>
+            <button 
+              onClick={onClose} 
+              className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all active:scale-95"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            {children}
+          </div>
         </div>
       </div>
     </div>

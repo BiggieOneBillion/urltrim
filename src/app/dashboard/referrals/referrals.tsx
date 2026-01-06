@@ -1,11 +1,26 @@
 // app/dashboard/referrals/referrals.tsx
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { Link, ExternalLink, Plus, RefreshCcw, AlertCircle } from 'lucide-react';
-import axios from 'axios';
+import { 
+  Link as LinkIcon, 
+  ExternalLink, 
+  Plus, 
+  RefreshCw, 
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  MousePointer2,
+  Copy,
+  Users,
+  Search,
+  ArrowRight
+} from 'lucide-react';
 import { useAuth } from '@/app/context/authContext';
 import { ReferralAuthModal } from '@/app/component/ui/ReferralAuthModal';
 import { CreateReferralModal } from '@/app/component/ui/CreateReferralModal';
 import { ManageReferralRequestsModal } from '@/app/component/ui/ManageReferralRequestModal';
+import { ModernButton } from '@/app/component/ui/ModernButton';
 
 interface ReferralItem {
   _id: string;
@@ -37,14 +52,13 @@ export const Referrals: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch user's referral links and pending requests
   const fetchReferrals = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-
       const [referralResponse, requestsResponse] = await Promise.all([
         fetch('/api/referrals/my', {
           method: 'GET',
@@ -68,11 +82,8 @@ export const Referrals: React.FC = () => {
 
       const referralData = await referralResponse.json();
       const requestsData = await requestsResponse.json();
-      console.log(`referralData: ${referralData.referrals.length} requestData: ${requestsData.requests.length}`)
-
-      // Correct assignment of data to state variables
+      
       setReferrals(referralData.referrals || []);
-
       setPendingRequests(requestsData.requests || []);
     } catch (err) {
       console.error('Error fetching referral data:', err);
@@ -98,205 +109,199 @@ export const Referrals: React.FC = () => {
     }
   };
 
-  const handleRefresh = () => {
-    fetchReferrals();
-  };
+  const filteredReferrals = referrals.filter(r => 
+    r.shortId.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    r.originalUrl.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  // Render content based on authentication state
-  const renderContent = () => {
-    if (!user) {
-      return (
-        <div className="flex flex-col items-center justify-center bg-white shadow-md rounded-lg p-8 space-y-4 text-center">
-          <AlertCircle size={48} className="text-blue-500" />
-          <h3 className="text-xl font-bold">Login Required</h3>
-          <p className="text-gray-600">
-            Please login or create an account to manage referral links
-          </p>
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
-          >
-            Login / Sign Up
-          </button>
-        </div>
-      );
-    }
-
+  if (!user) {
     return (
-      <div className="space-y-6">
-        {/* Header section */}
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <h2 className="text-2xl font-bold">My Referrals</h2>
-          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto">
-            <button
-              onClick={handleRefresh}
-              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full w-full md:w-auto"
-              title="Refresh data"
-            >
-              <RefreshCcw size={18} />
-            </button>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-black text-white px-4 py-2 rounded flex items-center space-x-2 hover:bg-gray-800 transition w-full md:w-auto justify-center"
-            >
-              <Plus size={18} />
-              <span>Request Referral</span>
-            </button>
-            <button
-              onClick={() => setShowRequestsModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition w-full md:w-auto"
-            >
-              Manage Pending Requests
-            </button>
-          </div>
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-6">
+        <div className="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center border border-blue-500/20">
+          <AlertCircle size={40} className="text-blue-400" />
         </div>
-
-        {/* Pending requests section */}
-        {pendingRequests.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-medium text-yellow-800 mb-2">My Referral Requests</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-yellow-200">
-                    <th className="py-2 px-2 text-left text-sm font-medium text-yellow-800">Original URL</th>
-                    <th className="py-2 px-2 text-left text-sm font-medium text-yellow-800">Custom Alias</th>
-                    <th className="py-2 px-2 text-left text-sm font-medium text-yellow-800">Requested</th>
-                    <th className="py-2 px-2 text-left text-sm font-medium text-yellow-800">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingRequests.map((request) => (
-                    <tr key={request._id} className="border-b border-yellow-100">
-                      <td className="py-2 px-2 text-sm">
-                        <div className="truncate max-w-xs">{request.url?.originalUrl}</div>
-                      </td>
-                      <td className="py-2 px-2 text-sm">
-                        {request.url?.shortId || 'Auto-generated'}
-                      </td>
-                      <td className="py-2 px-2 text-sm">
-                        {new Date(request.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-2 px-2 text-sm">
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                          {request.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Referrals list */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-            {error}
-          </div>
-        ) : referrals.length === 0 && pendingRequests.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <div className="mb-4">
-              <Link size={32} className="text-gray-400 mx-auto" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">No referral links yet</h3>
-            <p className="text-gray-500 mb-4">
-              Create your first referral link to start earning credit for your referrals
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-black text-white px-4 py-2 rounded inline-flex items-center space-x-2"
-            >
-              <Plus size={18} />
-              <span>Request Referral</span>
-            </button>
-          </div>
-        ) : referrals.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <div className="mb-4">
-              <Link size={32} className="text-gray-400 mx-auto" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">No referrals to manage right now</h3>
-            <p className="text-gray-500 mb-4">
-              Share your link with friends to create referral connections you’ll be able to track here!
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-gray-50 border-b">
-                    <th className="py-3 px-4 text-left font-medium">Original URL</th>
-                    <th className="py-3 px-4 text-left font-medium">Referral Link</th>
-                    <th className="py-3 px-4 text-right font-medium">Clicks</th>
-                    <th className="py-3 px-4 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {referrals.map((ref) => (
-                    <tr key={ref._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="truncate max-w-xs" title={ref.originalUrl}>
-                          {ref.originalUrl}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center">
-                          <a
-                            href={ref.shortUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline truncate max-w-xs flex items-center"
-                          >
-                            {ref.shortUrl}
-                            <ExternalLink size={14} className="ml-1 flex-shrink-0" />
-                          </a>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        {ref.clicks}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => handleCopy(ref.shortUrl)}
-                          className={`px-3 py-1 rounded text-sm ${
-                            copySuccess === ref.shortUrl
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                          }`}
-                        >
-                          {copySuccess === ref.shortUrl ? 'Copied!' : 'Copy'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold text-white">Login Required</h3>
+          <p className="text-gray-500 max-w-xs mx-auto">
+            Please login or create an account to manage your referral links and track earnings.
+          </p>
+        </div>
+        <ModernButton onClick={() => setShowAuthModal(true)} className="px-8">
+          Login / Sign Up
+        </ModernButton>
+        <ReferralAuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </div>
     );
-  };
+  }
 
   return (
-    <>
-      <div className="container mx-auto py-8 px-4 md:px-8">
-        {renderContent()}
+    <div className="flex flex-col gap-6">
+      {/* Header section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <h2 className="text-2xl font-black text-white tracking-tight">Referral Program</h2>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setShowRequestsModal(true)}
+            className="flex-1 sm:flex-none px-4 py-2.5 glass glass-hover rounded-xl text-gray-400 hover:text-white font-bold text-sm transition-all"
+          >
+            Manage Requests
+          </button>
+          <ModernButton
+            onClick={() => setShowCreateModal(true)}
+            className="flex-1 sm:flex-none"
+          >
+            <Plus size={18} className="mr-2" />
+            Request Link
+          </ModernButton>
+        </div>
+      </div>
+
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="glass p-4 rounded-2xl border border-white/5">
+          <div className="flex items-center gap-3 mb-1">
+            <Users size={16} className="text-blue-400" />
+            <span className="text-xs uppercase tracking-wider font-bold text-gray-500">Active</span>
+          </div>
+          <div className="text-2xl font-black text-white">{referrals.length}</div>
+        </div>
+        <div className="glass p-4 rounded-2xl border border-white/5">
+          <div className="flex items-center gap-3 mb-1">
+            <Clock size={16} className="text-amber-400" />
+            <span className="text-xs uppercase tracking-wider font-bold text-gray-500">Pending</span>
+          </div>
+          <div className="text-2xl font-black text-white">{pendingRequests.length}</div>
+        </div>
+        <div className="hidden sm:block glass p-4 rounded-2xl border border-white/5">
+          <div className="flex items-center gap-3 mb-1">
+            <MousePointer2 size={16} className="text-purple-400" />
+            <span className="text-xs uppercase tracking-wider font-bold text-gray-500">Total Clicks</span>
+          </div>
+          <div className="text-2xl font-black text-white">
+            {referrals.reduce((acc, curr) => acc + curr.clicks, 0)}
+          </div>
+        </div>
+      </div>
+
+      {/* Pending requests section */}
+      {pendingRequests.length > 0 && (
+        <div className="glass bg-amber-500/5 border border-amber-500/10 rounded-3xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock size={18} className="text-amber-400" />
+            <h3 className="font-bold text-amber-500 uppercase tracking-wider text-xs">Awaiting Approval</h3>
+          </div>
+          <div className="space-y-3">
+            {pendingRequests.map((request) => (
+              <div key={request._id} className="flex items-center justify-between bg-black/20 rounded-xl p-4 border border-white/5">
+                <div className="min-w-0 pr-4">
+                  <div className="text-sm font-bold text-white truncate max-w-[200px] sm:max-w-md">
+                    {request.url?.originalUrl}
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">
+                    Requested {new Date(request.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-500/20">
+                    {request.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Search */}
+      <div className="relative group">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors" size={20} />
+        <input 
+          type="text"
+          placeholder="Search referral links..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all font-medium"
+        />
+      </div>
+
+      {/* Referrals list */}
+      <div className="space-y-4 pb-10">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <RefreshCw className="animate-spin text-blue-500" size={32} />
+            <p className="text-gray-500 font-medium tracking-wide">Syncing referral data...</p>
+          </div>
+        ) : error ? (
+          <div className="glass bg-red-500/5 border border-red-500/10 rounded-2xl p-4 text-red-500 flex items-center gap-3">
+            <AlertCircle size={20} />
+            <span className="font-bold text-sm">{error}</span>
+          </div>
+        ) : filteredReferrals.length === 0 ? (
+          <div className="glass p-12 text-center rounded-[2.5rem] border border-white/5">
+            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10 text-gray-400">
+              <Users size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Level Up Your Links</h3>
+            <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+              Request referral status for your links to start tracking secondary interactions and earning credit.
+            </p>
+            <ModernButton
+              onClick={() => setShowCreateModal(true)}
+              className="px-8"
+            >
+              Request Referral Link
+            </ModernButton>
+          </div>
+        ) : (
+          filteredReferrals.map((ref) => (
+            <div 
+              key={ref._id} 
+              className="glass glass-hover p-6 rounded-[2rem] border border-white/5 flex flex-col sm:flex-row items-start sm:items-center gap-6"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <a
+                    href={ref.shortUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-lg font-bold text-white hover:text-blue-400 transition-colors flex items-center gap-2 truncate"
+                  >
+                    {ref.shortUrl}
+                    <ExternalLink size={14} className="opacity-50" />
+                  </a>
+                </div>
+                <div className="text-sm text-gray-500 font-medium truncate mb-4">
+                  Points to: {ref.originalUrl}
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MousePointer2 size={14} className="text-blue-400" />
+                    <span className="text-sm font-bold text-white">{ref.clicks}</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Clicks</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => handleCopy(ref.shortUrl)}
+                className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                  copySuccess === ref.shortUrl 
+                    ? "bg-green-500 text-white" 
+                    : "glass glass-hover text-gray-400 hover:text-white"
+                }`}
+              >
+                {copySuccess === ref.shortUrl ? "Copied!" : <><Copy size={16} /> Copy Link</>}
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Modals */}
-      <ReferralAuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
-
       <CreateReferralModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -307,7 +312,7 @@ export const Referrals: React.FC = () => {
         isOpen={showRequestsModal}
         onClose={() => setShowRequestsModal(false)}
       />
-    </>
+    </div>
   );
 };
 

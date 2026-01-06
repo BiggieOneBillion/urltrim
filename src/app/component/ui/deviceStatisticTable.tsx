@@ -1,13 +1,19 @@
-import React from 'react';
+// app/component/ui/deviceStatisticTable.tsx
+"use client";
 
-const DeviceStatisticsTable = ({ deviceDistribution }) => {
-  // Calculate total visits to determine percentages
+import React from 'react';
+import { Smartphone, Monitor, Tablet, HelpCircle } from 'lucide-react';
+
+interface DeviceStatisticsTableProps {
+  deviceDistribution: Record<string, number | string>;
+}
+
+const DeviceStatisticsTable: React.FC<DeviceStatisticsTableProps> = ({ deviceDistribution }) => {
   const totalVisits = Object.values(deviceDistribution).reduce(
-    (sum, count) => sum + Number(count), 
+    (sum: number, count) => sum + Number(count), 
     0
   );
   
-  // Convert the distribution object into an array of entries and sort by count (descending)
   const sortedDevices = Object.entries(deviceDistribution)
     .map(([device, count]) => ({
       device,
@@ -16,47 +22,63 @@ const DeviceStatisticsTable = ({ deviceDistribution }) => {
     }))
     .sort((a, b) => b.count - a.count);
 
+  const getDeviceIcon = (device: string) => {
+    const d = device.toLowerCase();
+    if (d.includes('mobile') || d.includes('phone')) return <Smartphone size={16} className="text-blue-400" />;
+    if (d.includes('desktop') || d.includes('window') || d.includes('mac')) return <Monitor size={16} className="text-purple-400" />;
+    if (d.includes('tablet') || d.includes('ipad')) return <Tablet size={16} className="text-pink-400" />;
+    return <HelpCircle size={16} className="text-gray-400" />;
+  };
+
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h3 className="text-xl font-bold mb-4">Device Statistics</h3>
-      
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr className="bg-gray-100 border-b">
-              <th className="py-3 px-4 text-left font-semibold">Device Type</th>
-              <th className="py-3 px-4 text-center font-semibold">Visits</th>
-              <th className="py-3 px-4 text-center font-semibold">Percentage</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedDevices.map((item, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                <td className="py-3 px-4 border-b">{item.device}</td>
-                <td className="py-3 px-4 text-center border-b">{item.count}</td>
-                <td className="py-3 px-4 text-center border-b">
-                  <div className="flex items-center justify-center">
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-24">
-                      <div 
-                        className="bg-black h-2.5 rounded-full" 
-                        style={{ width: `${item.percentage}%` }}>
-                      </div>
-                    </div>
-                    {item.percentage}%
-                  </div>
-                </td>
-              </tr>
-            ))}
-            
-            {/* Total row */}
-            <tr className="bg-gray-100 font-semibold">
-              <td className="py-3 px-4 border-t">Total</td>
-              <td className="py-3 px-4 text-center border-t">{totalVisits}</td>
-              <td className="py-3 px-4 text-center border-t">100%</td>
-            </tr>
-          </tbody>
-        </table>
+    <div className="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-black text-white tracking-tight">Device Usage</h3>
+          <p className="text-xs text-gray-500 font-bold mt-1 uppercase tracking-widest">Technographic Breakdown</p>
+        </div>
       </div>
+      
+      <div className="space-y-4">
+        {sortedDevices.map((item, index) => (
+          <div key={index} className="group">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors">
+                  {getDeviceIcon(item.device)}
+                </div>
+                <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">{item.device}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-black text-white">{item.count}</span>
+                <span className="text-[10px] text-gray-500 font-bold ml-2 uppercase tracking-tight">{item.percentage}%</span>
+              </div>
+            </div>
+            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 ease-out" 
+                style={{ width: `${item.percentage}%` }}
+              />
+            </div>
+          </div>
+        ))}
+        
+        {sortedDevices.length === 0 && (
+          <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+              <Smartphone size={24} className="text-gray-600" />
+            </div>
+            <p className="text-gray-500 font-bold tracking-tight">No device data detected</p>
+          </div>
+        )}
+      </div>
+
+      {totalVisits > 0 && (
+        <div className="pt-4 mt-2 border-t border-white/5 flex justify-between items-center">
+          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Cumulative Visits</span>
+          <span className="text-lg font-black text-white tracking-tighter">{totalVisits}</span>
+        </div>
+      )}
     </div>
   );
 };

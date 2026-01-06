@@ -1,6 +1,10 @@
 // app/component/ui/SuspendUrlModal.tsx
+"use client";
+
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, PlayCircle, PauseCircle, ShieldCheck } from "lucide-react";
+import { ModernButton } from "./ModernButton";
+import { ModernInput } from "./ModernInput";
 
 interface SuspendUrlModalProps {
   urlId: string;
@@ -53,10 +57,8 @@ export const SuspendUrlModal: React.FC<SuspendUrlModalProps> = ({
         return;
       }
 
-      // Success - close modal and refresh the URL list
       onSuccess();
       onClose();
-      
     } catch (error) {
       setError("An unexpected error occurred");
       setIsSubmitting(false);
@@ -64,78 +66,80 @@ export const SuspendUrlModal: React.FC<SuspendUrlModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-opacity-25 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">
-            {isSuspended ? 'Reactivate URL' : 'Suspend URL'}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[200] p-6 animate-in fade-in duration-300">
+      <div className="glass rounded-[2rem] p-8 max-w-md w-full border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 ${isSuspended ? 'bg-green-500/10' : 'bg-amber-500/10'} rounded-xl flex items-center justify-center border ${isSuspended ? 'border-green-500/20' : 'border-amber-500/20'}`}>
+              {isSuspended ? <PlayCircle size={20} className="text-green-500" /> : <PauseCircle size={20} className="text-amber-500" />}
+            </div>
+            <h3 className="text-xl font-bold text-white tracking-tight">
+              {isSuspended ? 'Reactivate Link' : 'Suspend Link'}
+            </h3>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-white/10 rounded-full text-gray-500 hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        <p className="mb-4">
-          {isSuspended 
-            ? 'This will reactivate your URL and make it accessible again.' 
-            : 'This will temporarily suspend your URL. Visitors will see a suspension notice instead of being redirected.'}
-        </p>
-
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">URL to {action}:</p>
-          <div className="bg-gray-100 p-2 rounded text-gray-800 break-all">
-            {shortUrl}
+        <div className="mb-8 space-y-4">
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+            <p className="text-sm text-gray-300 leading-relaxed font-medium">
+              {isSuspended 
+                ? 'Ready to bring this link back online?' 
+                : 'This will temporarily pause traffic to this URL.'}
+            </p>
+            <p className="text-xs text-gray-500 mt-2 break-all opacity-80">{shortUrl}</p>
+          </div>
+          
+          <div className="flex items-start gap-3 p-4 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+            <ShieldCheck size={16} className="text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-gray-400 leading-relaxed font-medium">
+              {isSuspended 
+                ? 'Submitting your password will immediately reactivate the redirects for this link.' 
+                : 'While suspended, visitors will see a standard hold page instead of being redirected.'}
+            </p>
           </div>
         </div>
 
-        <form onSubmit={handleSuspend}>
-          <div className="mb-4">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Confirm with your password:
+        <form onSubmit={handleSuspend} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">
+              Verify Identity
             </label>
-            <input
+            <ModernInput
               type="password"
-              id="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
               required
             />
+            {error && (
+              <p className="text-red-500 text-xs font-bold mt-1 ml-1 animate-in slide-in-from-left-2">
+                {error}
+              </p>
+            )}
           </div>
 
-          {error && (
-            <div className="mb-4 text-red-500 text-sm">{error}</div>
-          )}
-
-          <div className="flex justify-end space-x-3">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              className="flex-1 py-4 px-6 glass glass-hover rounded-2xl text-white font-bold text-sm transition-all active:scale-95"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
-            <button
+            <ModernButton
               type="submit"
+              className={`flex-1 ${isSuspended ? '!bg-green-600 hover:!bg-green-500 shadow-xl shadow-green-500/10' : '!bg-amber-600 hover:!bg-amber-500 shadow-xl shadow-amber-500/10'}`}
               disabled={isSubmitting}
-              className={`px-4 py-2 rounded ${
-                isSuspended
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-yellow-600 hover:bg-yellow-700 text-white"
-              } ${isSubmitting ? "opacity-75 cursor-not-allowed" : ""}`}
             >
-              {isSubmitting
-                ? "Processing..."
-                : isSuspended
-                  ? "Reactivate URL"
-                  : "Suspend URL"}
-            </button>
+              {isSubmitting ? "Syncing..." : (isSuspended ? "Reactivate" : "Suspend")}
+            </ModernButton>
           </div>
         </form>
       </div>
