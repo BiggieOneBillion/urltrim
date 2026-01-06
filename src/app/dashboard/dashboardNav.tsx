@@ -42,7 +42,6 @@ export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { i
     { name: "Dashboard", icon: LayoutDashboard, onClick: () => router.push("/dashboard"), active: pathname === "/dashboard" && !isPanelOpen },
     { name: "My URLs", icon: LinkIcon, onClick: () => handlePanelLink("myurls", <MyURLs />), active: isPanelOpen && pathname.includes("myurls") },
     { name: "Referrals", icon: Users, onClick: () => handlePanelLink("referrals", <Referrals />), active: isPanelOpen && pathname.includes("referrals") },
-    { name: "Blog", icon: FileText, onClick: () => handlePanelLink("blog", <MyURLs />), active: false },
   ];
 
   return (

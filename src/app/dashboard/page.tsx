@@ -25,6 +25,8 @@ import {
 import { useAuth } from "@/app/context/authContext";
 import { ModernButton } from "@/app/component/ui/ModernButton";
 import { ModernInput } from "@/app/component/ui/ModernInput";
+import { MyURLs } from "./myurls/myurls";
+import { Referrals } from "./referrals/referrals";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
@@ -34,7 +36,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showCustomOptions, setShowCustomOptions] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<string | boolean>(false);
   const [showQrCode, setShowQrCode] = useState(false);
   const [qrCodeSize, setQrCodeSize] = useState("svg");
   const [userUrls, setUserUrls] = useState<any[]>([]);
@@ -172,11 +174,12 @@ export default function Dashboard() {
     }
   };
 
-  const handleCopy = async () => {
-    if (!shortenedUrl) return;
+  const handleCopy = async (providedUrl?: string) => {
+    const targetUrl = providedUrl || shortenedUrl;
+    if (!targetUrl) return;
     try {
-      await navigator.clipboard.writeText(shortenedUrl);
-      setCopySuccess(true);
+      await navigator.clipboard.writeText(targetUrl);
+      setCopySuccess(providedUrl || true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       setError("Copy failed. Please manually copy the URL.");
@@ -326,7 +329,7 @@ export default function Dashboard() {
                  <div className="flex flex-col md:flex-row gap-4 mb-8">
                    <div className="flex-grow glass bg-white/5 border-white/10 px-6 py-4 rounded-2xl flex items-center justify-between group">
                      <span className="text-xl font-semibold text-white break-all">{shortenedUrl}</span>
-                     <button onClick={handleCopy} className="p-2 hover:bg-blue-500/20 rounded-xl text-blue-400 transition-all active:scale-95">
+                     <button onClick={() => handleCopy()} className="p-2 hover:bg-blue-500/20 rounded-xl text-blue-400 transition-all active:scale-95">
                        {copySuccess ? "Copied!" : <Copy size={20} />}
                      </button>
                    </div>
@@ -394,10 +397,12 @@ export default function Dashboard() {
                   
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => handleCopy()} 
-                      className="p-3 glass glass-hover rounded-xl text-gray-400 hover:text-white transition-all"
+                      onClick={() => handleCopy(url.shortUrl)} 
+                      className={`p-3 glass glass-hover rounded-xl transition-all ${
+                        copySuccess === url.shortUrl ? "text-green-400" : "text-gray-400 hover:text-white"
+                      }`}
                     >
-                      <Copy size={16} />
+                      {copySuccess === url.shortUrl ? <span className="text-[10px] font-bold">Done</span> : <Copy size={16} />}
                     </button>
                     <Link 
                       href={`/dashboard/detailed-stats/${url.shortId}`}
@@ -433,7 +438,7 @@ export default function Dashboard() {
             </div>
             
             <div className="bg-white p-6 rounded-2xl mb-6 qr-code-container flex justify-center shadow-2xl">
-              <QRCodeSVG value={shortenedUrl || selectedUrl || ""} size={200} level="H" includeMargin />
+              <QRCodeSVG value={shortenedUrl || ""} size={200} level="H" includeMargin />
             </div>
 
             <div className="grid grid-cols-3 gap-2 mb-6">
