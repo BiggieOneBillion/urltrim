@@ -1,105 +1,119 @@
 "use client";
 import { useState } from "react";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/authContext";
-import { Button, Spinner, Alert } from "@/app/component/ui"; // Import components
+import { Alert } from "@/app/component/ui";
+import { ModernButton } from "@/app/component/ui/ModernButton";
+import { ModernInput } from "@/app/component/ui/ModernInput";
+import { X, ArrowLeft } from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
- const { login, error, loading, user, googleLogin, clearError } = useAuth();
+  const { login, error, loading, clearError } = useAuth();
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-          e.preventDefault();
-          console.log("Login", { email, password });
-          await login(email, password); // Use the login method from context
-        };;
-
-  const handleGoogleAuth = () => {
-    console.log("Google authentication initiated");
+    e.preventDefault();
+    await login(email, password);
   };
 
   const navigateTo = (path: string) => {
     router.push(path);
   };
 
-  return <div className="min-h-screen flex flex-col justify-center items-center background py-6 px-4 sm:px-6 lg:px-8">
-      <Head>
-        <title>Login</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+  return (
+    <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
+      <div className="bg-mesh" />
+      
+      {/* Back to Home */}
+      <button 
+        onClick={() => navigateTo("/")}
+        className="fixed top-8 left-8 glass p-3 rounded-xl text-gray-400 hover:text-white transition-all duration-200 z-50 flex items-center gap-2 text-sm font-medium"
+      >
+        <ArrowLeft size={18} />
+        Back to Home
+      </button>
 
-      <nav className="bg-black p-4 fixed top-0 left-0 w-full z-50 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 onClick={() => {
-              navigateTo("/");
-            }} className="text-3xl font-bold tracking-wide text-white emblema-one-regular cursor-pointer">
-            URLTRIM
-          </h1>
-        </div>
-      </nav>
-
-      <div className="w-full mt-1 md:mt-24 sm:w-1/3 montserrat bg-white shadow-md rounded-lg p-3 sm:p-8 border border-gray-200">
-        <h2 className="text-center text-xl sm:text-xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        {error && <Alert variant="error" message={error} position="top-right" className="shadow-lg" onClose={clearError} autoClose={true} />}
-        <form className="mt-3 space-y-2" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-black">
-              Email address
-            </label>
-            <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-1.5 border border-gray-300 rounded-md focus:ring-black focus:border-black text-sm sm:text-base" />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input id="password" name="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-1.5 border border-gray-300 rounded-md focus:ring-black focus:border-black text-sm sm:text-base" />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <button type="button" onClick={() => navigateTo("/forgot-password")} className="text-sm text-black underline font-bold hover:text-gray-700">
-              Forgot your password?
-            </button>
-          </div>
-
-          <Button type="submit" disabled={loading} isLoading={loading} variant="black" className="w-full py-1.5 font-bold text-sm bg-black hover:bg-gray-800">
-            Sign In
-          </Button>
-        </form>
-
-        {/* Divider */}
-        <div className="relative flex items-center my-4">
-          <div className="flex-grow border-t border-gray-300" />
-          <span className="mx-3 text-sm text-gray-500">Or continue with</span>
-          <div className="flex-grow border-t border-gray-300" />
+      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-black tracking-tighter text-white emblema-one-regular mb-2">URLTRIM</h1>
+          <p className="text-gray-400">Welcome back! Please enter your details.</p>
         </div>
 
-        {/* Google Sign-In Button */}
-        <button onClick={handleGoogleAuth} className="w-full flex items-center justify-center py-3 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 shadow-sm">
-          <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" width="24" height="24">
-            <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-              <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z" />
-              <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z" />
-              <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z" />
-              <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z" />
-            </g>
-          </svg>
-          Sign in with Google
-        </button>
+        <div className="glass rounded-[2rem] p-8 md:p-10">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Sign In</h2>
+          
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex justify-between items-center">
+              <span>{error}</span>
+              <button onClick={clearError}><X size={14} /></button>
+            </div>
+          )}
 
-        {/* Toggle Login/Signup */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account? <button type="button" onClick={() => navigateTo("/register")} className="text-black font-bold hover:text-gray-800 underline cursor-pointer">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <ModernInput 
+              label="Email Address"
+              type="email" 
+              required 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              placeholder="name@company.com"
+            />
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center px-1">
+                <label className="text-sm font-medium text-gray-400">Password</label>
+                <button 
+                  type="button"
+                  onClick={() => navigateTo("/forgot-password")} 
+                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <ModernInput 
+                type="password" 
+                required 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="••••••••"
+              />
+            </div>
+
+            <ModernButton type="submit" isLoading={loading} className="w-full py-4 text-lg">
+              Sign In
+            </ModernButton>
+          </form>
+
+          <div className="relative flex items-center my-10">
+            <div className="flex-grow border-t border-white/10" />
+            <span className="mx-4 text-xs font-semibold text-gray-500 uppercase tracking-widest">Or</span>
+            <div className="flex-grow border-t border-white/10" />
+          </div>
+
+          <button className="w-full glass glass-hover py-4 rounded-xl flex items-center justify-center gap-3 text-sm font-medium text-white">
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.07-3.71 1.07-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" />
+            </svg>
+            Sign in with Google
+          </button>
+
+          <p className="mt-8 text-center text-sm text-gray-400">
+            Don't have an account?{" "}
+            <button 
+              onClick={() => navigateTo("/register")} 
+              className="text-blue-400 font-bold hover:text-blue-300 underline underline-offset-4 transition-all"
+            >
               Sign up
             </button>
           </p>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
