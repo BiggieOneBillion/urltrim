@@ -1,37 +1,28 @@
 import { useRouter, usePathname } from "next/navigation";
-import { useRouter as useRouter2 } from "next/router";
-import { ChevronDown, User, LogOut, Menu, X } from "lucide-react";
+import { User, LogOut, Menu, X, LayoutDashboard, Link as LinkIcon, Users, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/authContext";
-import { MyURLs} from "@/app/dashboard/myurls/myurls";
-import {Referrals} from "@/app/dashboard/referrals/referrals"
+import { MyURLs } from "@/app/dashboard/myurls/myurls";
+import { Referrals } from "@/app/dashboard/referrals/referrals";
+
 export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { isPanelOpen: boolean; closePanel: () => void; openPanel: (path: string, content: React.ReactNode) => void }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const router = useRouter();
-   
+  const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  // Close mobile menu when route changes
   useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
-
-  // Close mobile menu when screen size increases
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname, isPanelOpen]);
+
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
   const handleLogout = async () => {
     try {
@@ -42,119 +33,123 @@ export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { i
     }
   };
 
-
-     // Handle panel navigation with URL change but without full page navigation
   const handlePanelLink = (path: string, content: React.ReactNode) => {
     openPanel(path, content);
     setMobileMenuOpen(false);
   };
 
-  return (
-    <nav className="bg-black p-4 fixed top-0 left-0 w-full z-50 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1
-          onClick={() => router.push("/dashboard")}
-          className="text-3xl font-bold tracking-wide text-white emblema-one-regular cursor-pointer"
-        >
-          URLTRIM
-        </h1>
+  const navLinks = [
+    { name: "Dashboard", icon: LayoutDashboard, onClick: () => router.push("/dashboard"), active: pathname === "/dashboard" && !isPanelOpen },
+    { name: "My URLs", icon: LinkIcon, onClick: () => handlePanelLink("myurls", <MyURLs />), active: isPanelOpen && pathname.includes("myurls") },
+    { name: "Referrals", icon: Users, onClick: () => handlePanelLink("referrals", <Referrals />), active: isPanelOpen && pathname.includes("referrals") },
+    { name: "Blog", icon: FileText, onClick: () => handlePanelLink("blog", <MyURLs />), active: false },
+  ];
 
-              {/* Desktop Navigation */}
-               <div className="hidden md:flex space-x-6 text-white">
-            <button onClick={() => handlePanelLink("myurls", <MyURLs/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
-              pathname === "/dashboard/myurls/myurls" ? "text-green-400" : ""
-            }`}>
-              My URLs
-            </button>
-           
-           <button onClick={() => handlePanelLink("referrals", <Referrals/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
-              pathname === "/dashboard/referrals/referrals" ? "text-green-400" : ""
-            }`}>
-              Refferals
-            </button>
-            <div className="relative group">
-             <button onClick={() => handlePanelLink("myurls", <MyURLs/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
-              pathname === "/dashboard/myurls/myurls" ? "text-green-400" : ""
-            }`}>
-                Blog
-              </button>
+  return (
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? "py-4" : "py-6"}`}>
+      <div className="container mx-auto px-6">
+        <div className={`glass glass-hover rounded-2xl flex items-center justify-between px-6 py-4 transition-all duration-300 ${scrolled ? "shadow-2xl shadow-black/50" : ""}`}>
+          <div className="flex items-center gap-8">
+            <h1
+              onClick={() => router.push("/dashboard")}
+              className="text-2xl font-black tracking-tighter text-white emblema-one-regular cursor-pointer hover:scale-105 transition-transform"
+            >
+              URLTRIM
+            </h1>
+
+            {/* Desktop Nav Links */}
+            <div className="hidden md:flex items-center gap-2">
+              {navLinks.map((link) => (
+                <button
+                  key={link.name}
+                  onClick={link.onClick}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    link.active 
+                      ? "bg-white/10 text-white" 
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <link.icon size={16} />
+                  {link.name}
+                </button>
+              ))}
             </div>
           </div>
-        <div className="hidden md:flex space-x-6 text-white">
-     
+
+          <div className="flex items-center gap-4">
+            {/* User Profile / Logout */}
+            {user && (
+              <div className="hidden md:flex items-center gap-6">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
+                    {user.name?.charAt(0) || "U"}
+                  </div>
+                  <span className="text-sm font-semibold text-gray-200">{user.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-400 hover:text-red-400 transition-colors p-2"
+                  title="Logout"
+                >
+                  <LogOut size={20} />
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={toggleMobileMenu}
+              className="md:hidden text-white p-2 hover:bg-white/10 rounded-xl transition-colors"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={toggleMobileMenu}
-          className="md:hidden text-white focus:outline-none"
-        >
-          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-
-        {/* User info on desktop */}
-        {user && (
-          <div className="hidden md:flex rock-salt-regular items-center text-white space-x-4">
-            <div className="flex items-center">
-              <User className="h-5 w-5 mr-2" />
-              <span>{user.name}</span>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 animate-in slide-in-from-top-4 duration-300">
+            <div className="glass rounded-2xl p-4 space-y-2 border border-white/10">
+              {navLinks.map((link) => (
+                <button
+                  key={link.name}
+                  onClick={link.onClick}
+                  className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all ${
+                    link.active 
+                      ? "bg-white/10 text-white font-bold" 
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <link.icon size={20} />
+                  {link.name}
+                </button>
+              ))}
+              
+              {user && (
+                <div className="pt-4 mt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between px-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                        {user.name?.charAt(0) || "U"}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">{user.name}</p>
+                        <p className="text-xs text-gray-500">Member</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                    >
+                      <LogOut size={20} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            <button
-              onClick={handleLogout}
-              className="bg-black px-3 py-1 rounded hover:bg-white hover:text-black transition flex items-center"
-            >
-              <LogOut className="h-4 w-4 mr-1" />
-              Logout
-            </button>
           </div>
         )}
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-black text-white py-4 px-4 mt-2 rounded-b-lg shadow-lg">
-          <div className="flex flex-col space-y-4">
-            <button
-              onClick={() => handlePanelLink("myurls", <MyURLs/>)}
-              className={`text-left py-2 border-b border-gray-700 doto font-bold ${
-                pathname === "/dashboard/myurls" ? "text-green-400" : ""
-              }`}
-            >
-              My Urls
-            </button>
-            <button
-            onClick={() => handlePanelLink("referrals", <Referrals/>)}
-              className={`text-left py-2 border-b border-gray-700 doto font-bold ${
-                pathname === "/dashboard/referrals" ? "text-green-400" : ""
-              }`}
-            >
-              Referrals
-            </button>
-            <button
-              onClick={() => handlePanelLink("myurls", <MyURLs/>)}
-              className={`text-left py-2 border-b border-gray-700 doto font-bold ${
-                pathname === "/dashboard/Blog" ? "text-green-400" : ""
-              }`}
-            >
-              Blog
-            </button>
-           
-
-            {user && (
-              <>
-                <div className="rock-salt-regular flex items-center text-white py-2 border-b border-gray-700">
-                  <User className="h-5 w-5 mr-2" />
-                  <span>{user.name}</span>
-                </div>
-                <button onClick={handleLogout} className="flex items-center py-2 rock-salt-regular">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
