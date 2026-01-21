@@ -52,7 +52,7 @@ export const CreateReferralModal: React.FC<CreateReferralModalProps> = ({ isOpen
   
   return (
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+      <div style={{padding:"24px"}} className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-black"
@@ -60,7 +60,7 @@ export const CreateReferralModal: React.FC<CreateReferralModalProps> = ({ isOpen
           <X size={24} />
         </button>
         
-        <h2 className="text-2xl font-bold mb-6 text-center">
+        <h2 style={{paddingBottom:"20px"}} className="text-xl font-bold mb-6 text-center">
           Request Referral Link
         </h2>
         
@@ -76,12 +76,13 @@ export const CreateReferralModal: React.FC<CreateReferralModalProps> = ({ isOpen
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        <form style={{gap:"20px"}} onSubmit={handleSubmit} className="flex flex-col">
+          <div style={{gap:"5px"}} className='flex flex-col'>
             <label htmlFor="originalUrl" className="block text-sm font-medium text-gray-700 mb-1">
               URL to Create Referral For
             </label>
             <input
+              style={{padding:"3px 10px"}}
               id="originalUrl"
               type="url"
               value={shortUrl}
@@ -95,11 +96,12 @@ export const CreateReferralModal: React.FC<CreateReferralModalProps> = ({ isOpen
             </p>
           </div>
           
-          <div>
+          <div style={{gap:"5px"}} className='flex flex-col'>
             <label htmlFor="customAlias" className="block text-sm font-medium text-gray-700 mb-1">
               Custom Alias (Optional)
             </label>
             <input
+              style={{padding:"3px 10px"}}
               id="customAlias"
               type="text"
               value={customAlias}
@@ -113,6 +115,7 @@ export const CreateReferralModal: React.FC<CreateReferralModalProps> = ({ isOpen
           </div>
           
           <button
+            style={{padding:"10px 10px"}}
             type="submit"
             disabled={loading}
             className="w-full bg-black text-white py-3 rounded-md font-medium hover:bg-gray-800 transition duration-200"

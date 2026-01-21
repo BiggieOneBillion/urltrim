@@ -29,14 +29,14 @@ const GeographicalDistribution = ({ stats }: { stats: ExtendedUrlStats }) => {
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 ">
       {/* Continent Distribution Pie Chart */}
-      <div className="bg-white shadow-md rounded-lg p-4">
-        <div className="flex items-center mb-4">
+      <div style={{padding:"15px"}} className="bg-white shadow-md rounded-lg p-4">
+        <div style={{gap:"5px"}} className="flex items-center mb-4">
           <div className="mr-4 text-black">
             <Map />
           </div>
-          <h3 className="text-xl font-bold">Continent Distribution</h3>
+          <h3 className="text-base font-bold">Continent Distribution</h3>
         </div>
 
         <div className="h-64">
@@ -70,12 +70,12 @@ const GeographicalDistribution = ({ stats }: { stats: ExtendedUrlStats }) => {
       </div>
 
       {/* Country Distribution List */}
-      <div className="bg-white shadow-md rounded-lg p-4">
-        <div className="flex items-center mb-4">
+      <div style={{padding:"15px", gap:"10px"}} className="bg-white flex flex-col shadow-md rounded-lg p-4">
+        <div style={{gap:"5px"}} className="flex items-center mb-4">
           <div className="mr-4 text-black">
             <Globe />
           </div>
-          <h3 className="text-xl font-bold">Country Distribution</h3>
+          <h3 className="text-base font-bold">Country Distribution</h3>
         </div>
 
         <div className="overflow-y-auto max-h-64">
@@ -110,7 +110,7 @@ const GeographicalDistribution = ({ stats }: { stats: ExtendedUrlStats }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={3} style={{paddingBlock:"10px"}} className="px-6 py-4 text-center text-sm text-gray-500">
                     No country data available
                   </td>
                 </tr>

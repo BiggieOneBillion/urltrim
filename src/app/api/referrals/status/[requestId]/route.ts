@@ -26,9 +26,6 @@ export async function PATCH(
     }
     
     // Log authentication info for debugging
-    console.log("Auth header present:", !!authHeader);
-    console.log("User authenticated:", !!user);
-    console.log("User ID:", user._id);
     const { status } = await req.json();
     const { requestId } = await params;
     

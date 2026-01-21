@@ -17,42 +17,52 @@ const DeviceStatisticsTable = ({ deviceDistribution }) => {
     .sort((a, b) => b.count - a.count);
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h3 className="text-xl font-bold mb-4">Device Statistics</h3>
+    <div style={{ gap: "20px", display: "flex", flexDirection: "column" }} className="bg-white rounded-xl shadow-sm p-6">
+      <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#111827", margin: "10px" }}>Device Statistics</h3>
       
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 4px" }}>
           <thead>
-            <tr className="bg-gray-100 border-b">
-              <th className="py-3 px-4 text-left font-semibold">Device Type</th>
-              <th className="py-3 px-4 text-center font-semibold">Visits</th>
-              <th className="py-3 px-4 text-center font-semibold">Percentage</th>
+            <tr style={{ color: "#6b7280", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600" }}>Device Type</th>
+              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: "600" }}>Visits</th>
+              <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600" }}>Percentage</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody style={{ fontSize: "14px", color: "#374151" }}>
             {sortedDevices.map((item, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                <td className="py-3 px-4 border-b">{item.device}</td>
-                <td className="py-3 px-4 text-center border-b">{item.count}</td>
-                <td className="py-3 px-4 text-center border-b">
-                  <div className="flex items-center justify-center">
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2 max-w-24">
+              <tr 
+                key={index} 
+                style={{ 
+                  backgroundColor: index % 2 === 0 ? "#f9fafb" : "transparent",
+                  transition: "background-color 0.2s"
+                }}
+              >
+                <td style={{ padding: "16px", borderRadius: "8px 0 0 8px" }}>{item.device}</td>
+                <td style={{ padding: "16px", textAlign: "center", fontWeight: "500" }}>{item.count}</td>
+                <td style={{ padding: "16px", borderRadius: "0 8px 8px 0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ flex: 1, backgroundColor: "#e5e7eb", borderRadius: "9999px", height: "6px", maxWidth: "100px" }}>
                       <div 
-                        className="bg-black h-2.5 rounded-full" 
-                        style={{ width: `${item.percentage}%` }}>
-                      </div>
+                        style={{ 
+                          width: `${item.percentage}%`, 
+                          backgroundColor: "#111827", 
+                          height: "100%", 
+                          borderRadius: "9999px" 
+                        }} 
+                      />
                     </div>
-                    {item.percentage}%
+                    <span style={{ fontSize: "12px", color: "#6b7280", minWidth: "40px" }}>{item.percentage}%</span>
                   </div>
                 </td>
               </tr>
             ))}
             
             {/* Total row */}
-            <tr className="bg-gray-100 font-semibold">
-              <td className="py-3 px-4 border-t">Total</td>
-              <td className="py-3 px-4 text-center border-t">{totalVisits}</td>
-              <td className="py-3 px-4 text-center border-t">100%</td>
+            <tr style={{ fontWeight: "600", borderTop: "1px solid #f3f4f6", marginTop: "8px" }}>
+              <td style={{ padding: "16px", borderRadius: "8px 0 0 8px" }}>Total</td>
+              <td style={{ padding: "16px", textAlign: "center" }}>{totalVisits}</td>
+              <td style={{ padding: "16px", borderRadius: "0 8px 8px 0" }}>100%</td>
             </tr>
           </tbody>
         </table>

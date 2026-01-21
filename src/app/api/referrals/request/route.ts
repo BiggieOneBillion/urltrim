@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
     }
     
     const { shortUrl, customAlias } = await req.json() 
-   console.log("Request data:", { shortUrl, customAlias });  
     // Find the URL in the database
  const url = await Url.findOne({ shortUrl });    
     if (!url) {
@@ -47,7 +46,6 @@ export async function POST(req: NextRequest) {
       ownerId: url.userId,
       customAlias: customAlias || null
     });
-    console.log("Created referral request:", referralRequest._id);
     
     return NextResponse.json({ 
       success: true, 

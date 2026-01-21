@@ -37,7 +37,6 @@ export async function middleware(request: NextRequest) {
     // Add user ID to headers for route handlers to access
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-user-id", payload.id as string);
-    console.log('AUTH PASSED FOR THIS ROUTE')
     // Continue to the protected route with modified headers
     return NextResponse.next({
       request: {

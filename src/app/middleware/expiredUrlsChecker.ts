@@ -15,7 +15,6 @@ export async function checkAndSuspendExpiredUrls() {
     });
     
     if (expiredUrls.length > 0) {
-      console.log(`Found ${expiredUrls.length} expired URLs to suspend`);
       
       // Suspend all expired URLs
       await Url.updateMany(
@@ -23,7 +22,6 @@ export async function checkAndSuspendExpiredUrls() {
         { isSuspended: true }
       );
       
-      console.log(`Successfully suspended ${expiredUrls.length} expired URLs`);
     }
   } catch (error) {
     console.error("Error suspending expired URLs:", error);

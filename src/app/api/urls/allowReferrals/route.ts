@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
     // Update the allowReferrals flag
     url.allowReferrals = allowReferrals;
     await url.save();
-    console.log("allowed referrals for this url")
     return NextResponse.json({
       success: true,
       message: allowReferrals ? "Referrals enabled" : "Referrals disabled",

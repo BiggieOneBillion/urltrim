@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
 
     // Update the URL with the new shortId
       const baseUrl = new URL(urlToRename.shortUrl).origin;
-      console.log(baseUrl)
     const newShortUrl = `${baseUrl}/${newShortId}`;
     
     await Url.findByIdAndUpdate(urlToRename._id, {

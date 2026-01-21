@@ -135,7 +135,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Redirect to login
       router.push("/login");
     } catch (error: any) {
-      console.log(error)
       setError(error.response?.data?.error || "Logout failed");
     } finally {
       setLoading(false);

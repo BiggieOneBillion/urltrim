@@ -81,7 +81,7 @@ export const ManageReferralRequestsModal: React.FC<ManageReferralRequestsModalPr
 
   return (
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <div style={{padding: "24px"}} className="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-black"
@@ -110,7 +110,7 @@ export const ManageReferralRequestsModal: React.FC<ManageReferralRequestsModalPr
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
           </div>
         ) : requests.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 text-red-500">
             No pending referral requests
           </div>
         ) : (

@@ -68,7 +68,6 @@ export const Referrals: React.FC = () => {
 
       const referralData = await referralResponse.json();
       const requestsData = await requestsResponse.json();
-      console.log(`referralData: ${referralData.referrals.length} requestData: ${requestsData.requests.length}`)
 
       // Correct assignment of data to state variables
       setReferrals(referralData.referrals || []);
@@ -125,10 +124,11 @@ export const Referrals: React.FC = () => {
     return (
       <div className="space-y-6">
         {/* Header section */}
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div style={{marginBottom:"20px"}} className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <h2 className="text-2xl font-bold">My Referrals</h2>
-          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto">
+          <div style={{gap:"10px"}} className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto">
             <button
+             style={{padding:"2px 8px"}}
               onClick={handleRefresh}
               className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full w-full md:w-auto"
               title="Refresh data"
@@ -136,6 +136,7 @@ export const Referrals: React.FC = () => {
               <RefreshCcw size={18} />
             </button>
             <button
+             style={{padding:"2px 8px", gap:"5px"}}
               onClick={() => setShowCreateModal(true)}
               className="bg-black text-white px-4 py-2 rounded flex items-center space-x-2 hover:bg-gray-800 transition w-full md:w-auto justify-center"
             >
@@ -143,6 +144,7 @@ export const Referrals: React.FC = () => {
               <span>Request Referral</span>
             </button>
             <button
+             style={{padding:"2px 8px"}}
               onClick={() => setShowRequestsModal(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition w-full md:w-auto"
             >
@@ -153,7 +155,7 @@ export const Referrals: React.FC = () => {
 
         {/* Pending requests section */}
         {pendingRequests.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div style={{padding:"10px"}} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-medium text-yellow-800 mb-2">My Referral Requests</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full">
@@ -200,7 +202,7 @@ export const Referrals: React.FC = () => {
             {error}
           </div>
         ) : referrals.length === 0 && pendingRequests.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <div style={{padding:"20px"}} className="bg-gray-50 border border-gray-200 rounded-lg p-8 flex flex-col items-center">
             <div className="mb-4">
               <Link size={32} className="text-gray-400 mx-auto" />
             </div>
@@ -209,6 +211,7 @@ export const Referrals: React.FC = () => {
               Create your first referral link to start earning credit for your referrals
             </p>
             <button
+             style={{padding:"2px 8px", gap:"5px"}}
               onClick={() => setShowCreateModal(true)}
               className="bg-black text-white px-4 py-2 rounded inline-flex items-center space-x-2"
             >

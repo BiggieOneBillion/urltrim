@@ -8,7 +8,6 @@ export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser(req);
     const userId = user._id
-    console.log(userId)
     if (!userId) {
        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

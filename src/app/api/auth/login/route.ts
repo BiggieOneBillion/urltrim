@@ -43,7 +43,6 @@ export async function POST(request: Request) {
 
     // Generate JWT token
     const token = await generateToken(user._id.toString());
-console.log('token>>>>',token, typeof token)
     // Set cookie with token
     const cookieStore = cookies();
 

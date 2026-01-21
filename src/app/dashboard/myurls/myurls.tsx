@@ -15,7 +15,9 @@ import {
   Share2,
   X,
   Trash2,
-  RefreshCw
+  RefreshCw,
+
+
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -130,7 +132,6 @@ const [showCustomOptions, setShowCustomOptions] = useState(false);
           if (response.ok) {
             const data = await response.json();
             setUserUrls(data.urls || []);
-            console.log(data);
           } else {
             setError("Failed to fetch your URLs");
           }
@@ -338,7 +339,6 @@ const handleCreateFirstUrl = () => {
 
   // Handle rename button click
   const handleEditOriginalUrlClick = (originalUrl: string) => {
-    console.log(originalUrl)
     setOriginalUrlToEdit({
       id: originalUrl,
       originalUrl: originalUrl
@@ -385,6 +385,7 @@ const handleCreateFirstUrl = () => {
       setLoadingUrls(false);
     }
   };
+
   return (
     <div className="p-2 sm:p-4 montserrat h-full w-full flex flex-col absolute">
       {alertMessage &&(
@@ -397,7 +398,7 @@ const handleCreateFirstUrl = () => {
           autoClose={true}
         />)}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg sm:text-xl font-bold">Your recent ShortUrls</h2>
+        <h2 className="text-base sm:text-xl font-semibold">Your recent ShortUrls</h2>
         {showQrCode &&
           <button
             onClick={() => setShowQrCode(false)}
@@ -430,22 +431,23 @@ const handleCreateFirstUrl = () => {
               </span>
             </div>
           : userUrls.length === 0
-            ? <div className="text-center py-10">
-                <div className="flex w-full justify-end cursor-pointer items-center mb-4">
+            ? <div style={{paddingBlock:"14px", gap:"14px"}} className="text-center py-10 flex flex-col">
+                <div className="flex w-full justify-start cursor-pointer items-center mb-4">
                   <span
+                   style={{padding:"7px 14px"}}
                     onClick={() => handleRefresh()}
-                    className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full justify-self-end text-sm"
+                    className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md justify-self-end text-sm"
                   >
                     Refresh
                   </span>
                 </div>
                 <p className="text-gray-500 mb-4">
-                  You haven't created any URLs yet
+                  You haven't created any URLs yet!!
                 </p>
                 <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              <div className="flex flex-col items-center gap-1">
                 <label htmlFor="url" className="text-lg font-medium flex items-center gap-2">
-                  <span className="md: text-center text-black">Shorten a long URL</span>
+                  <span className="md:text-center text-black/80 text-base">Shorten your long URL :</span>
                 </label>
                 <input 
                   type="url" 
@@ -453,25 +455,30 @@ const handleCreateFirstUrl = () => {
                   value={url} 
                   onChange={e => setUrl(e.target.value)} 
                   placeholder="Enter long link here" 
-                  className="w-full md:w-1/2 p-3 border border-gray-300 rounded-md mt-2 text-lg text-black" 
+                  className="w-full md:w-1/2 py-3 border border-gray-300 rounded-md mt-2 text-lg text-black" 
                   required 
+                  style={{padding:"5px"}}
                 />
               </div>
 
-              <div>
+              <div style={{marginBlock:"10px"}} className="flex items-center justify-center">
                 <button 
                   type="button" 
                   onClick={() => setShowCustomOptions(!showCustomOptions)} 
-                  className="flex items-center gap-2 text-black font-medium"
+                  className="flex items-center gap-2 text-base text-black/60 font-medium"
                 >
-                  <span className="text-lg text-black">
-                    <Wand /></span>
+                  <span className="">
+                    <Wand size={16}/>
+                  </span>
+                    Customise Your Url
                  </button>
               </div>
+              <div className="flex items-center justify-center">
               <button 
+              style={{padding:"5px 15px"}}
                 type="submit" 
                 disabled={loading} 
-                className="w-full bg-black hover:bg-white hover:text-black cursor-pointer text-white font-bold p-3 rounded-md transition text-lg flex items-center justify-center rock-salt-regular"
+                className="w-fully bg-black hover:bg-black/80 cursor-pointer text-white font-bold p-3 rounded-md transition text-lg flex items-center justify-center rock-salt-regular"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -485,20 +492,23 @@ const handleCreateFirstUrl = () => {
                   "Shorten URL"
                 )}
               </button>
-            </form>
+              </div>
+                </form>
               </div>
             : <div className="flex-1 flex flex-col min-h-0 max-h-full">
-                {" "}<div className="flex w-full cursor-pointer justify-end items-center mb-4">
+                <div style={{margin:"1rem 0rem"}} className="flex w-full cursor-pointer justify-start items-center mb-4">
                   <span
+                    style={{padding: "4px 8px"}}
                     onClick={() => handleRefresh()}
-                    className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm"
+                    className="bg-gray-200 text-gray-700 flex items-center gap-2 px-2 py-1 rounded-md text-sm"
                   >
-                    Refresh
+                   <RefreshCw size={16}/> Refresh List
                   </span>
                 </div>
                 <div className="overflow-y-scroll flex-1 pr-1 space-y-6 w-full mb-15">
                   {userUrls.map((url, index) =>
                     <div
+                      style={{borderBottom: "1px solid #e5e7eb", paddingBottom: "1rem", marginBottom: "1rem"}}
                       key={index}
                       className="border-b border-gray-200 pb-6 last:border-b-0 w-full"
                     >
@@ -526,7 +536,7 @@ const handleCreateFirstUrl = () => {
                         </div>
 
                         <div className="flex-1">
-                          <div className="flex flex-col">
+                          <div style={{paddingBottom: ".5rem", marginBottom: ".5rem", gap: ".2rem"}} className="flex flex-col">
                             <a
                               href={url.shortUrl}
                               target="_blank"
@@ -551,9 +561,10 @@ const handleCreateFirstUrl = () => {
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap mt-3 gap-1">
+                          <div style={{gap: ".5rem"}} className="flex flex-wrap mt-3 gap-1">
                             
                             <button
+                              style={{padding:"2px 8px"}}
                               onClick={() => handleEditOriginalUrlClick(url.originalUrl)}
                               className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
                             >
@@ -561,6 +572,7 @@ const handleCreateFirstUrl = () => {
                             </button>
 
                             <button
+                              style={{padding:"2px 8px"}}
                               onClick={() => handleRenameClick(url.shortId)}
                               className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
                             >
@@ -568,18 +580,21 @@ const handleCreateFirstUrl = () => {
                             </button>
 
                             <button
+                             style={{padding:"2px 8px"}}
                               onClick={() => handleUrlQrCode(url.shortUrl)}
                               className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
                             >
                               QR
                             </button>
                             <button
+                             style={{padding:"2px 8px"}}
                               onClick={() => handleUrlShare(url.shortUrl)}
                               className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
                             >
                               Share
                             </button>
                             <button
+                             style={{padding:"2px 8px"}}
                               onClick={() => handleUrlCopy(url.shortUrl)}
                               className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
                             >
@@ -588,6 +603,7 @@ const handleCreateFirstUrl = () => {
                                 : "Copy"}
                             </button>
                             <button
+                             style={{padding:"2px 8px"}}
                               onClick={() =>
                                 handleDeleteClick(url.shortId, url.shortUrl)}
                               className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
@@ -595,23 +611,24 @@ const handleCreateFirstUrl = () => {
                               <Trash2 size={18} />
                             </button>
                             <button
-  onClick={() => handleSuspendClick(url.shortId, url.shortUrl, url.isSuspended || false)}
-  className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
->
-  {url.isSuspended ? (
-    <div className="flex items-center">
-      <PlayCircle size={18} className="mr-1" />
-      <span>Activate</span>
-    </div>
-  ) : (
-    <div className="flex items-center">
-      <PauseCircle size={18} className="mr-1" />
-      <span>Suspend</span>
-    </div>
-  )}
-</button>
+                             style={{padding:"2px 8px"}}
+                              onClick={() => handleSuspendClick(url.shortId, url.shortUrl, url.isSuspended || false)}
+                              className="bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200"
+                            >
+                            {url.isSuspended ? (
+                              <div style={{gap:"4px"}} className="flex items-center">
+                                <PlayCircle size={18} className="mr-1" />
+                                <span>Activate</span>
+                              </div>
+                            ) : (
+                              <div style={{gap:"4px"}} className="flex items-center">
+                                <PauseCircle size={18} className="mr-1" />
+                                <span>Suspend</span>
+                              </div>
+                            )}
+                          </button>
                           </div>
-                          <div className=" mt-3">
+                          <div style={{marginTop:"1rem"}}>
                             <Link
                               href = {`/dashboard/detailed-stats/${url.shortId}`}
                               className="text-blue-600 mt-3 hover:underline"
@@ -628,8 +645,8 @@ const handleCreateFirstUrl = () => {
 
       {showQrCode &&
         selectedUrl &&
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50">
+          <div style={{paddingInline:"10px", paddingBlock:"10px"}} className="bg-white rounded-lg p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">QR Code for your URL</h3>
               <button
@@ -651,6 +668,7 @@ const handleCreateFirstUrl = () => {
 
             <div className="grid grid-cols-3 gap-2 mb-4">
               <button
+                style={{padding:"2px 8px"}}
                 onClick={() => handleQrCodeClick("svg")}
                 className={`p-2 rounded ${qrCodeSize === "svg"
                   ? "bg-green-600 text-white"
@@ -659,6 +677,7 @@ const handleCreateFirstUrl = () => {
                 SVG
               </button>
               <button
+                style={{padding:"2px 8px"}}
                 onClick={() => handleQrCodeClick("png")}
                 className={`p-2 rounded ${qrCodeSize === "png"
                   ? "bg-green-600 text-white"
@@ -667,6 +686,7 @@ const handleCreateFirstUrl = () => {
                 PNG
               </button>
               <button
+                style={{padding:"2px 8px"}}
                 onClick={() => handleQrCodeClick("png1200")}
                 className={`p-2 rounded ${qrCodeSize === "png1200"
                   ? "bg-green-600 text-white"
@@ -676,14 +696,16 @@ const handleCreateFirstUrl = () => {
               </button>
             </div>
 
-            <div className="flex justify-between">
+            <div style={{marginTop:"10px"}} className="flex justify-between">
               <button
+                style={{padding:"2px 8px"}}
                 onClick={downloadQrCode}
                 className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
               >
                 Download
               </button>
               <button
+                style={{padding:"2px 8px"}}
                 onClick={() => setShowQrCode(false)}
                 className="bg-gray-300 py-2 px-4 rounded hover:bg-gray-400"
               >

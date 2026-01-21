@@ -12,7 +12,6 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Forgot Password", { email });
     setIsSubmitted(true);
   };
 

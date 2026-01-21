@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { MyURLs} from "@/app/dashboard/myurls/myurls";
 import {Referrals} from "@/app/dashboard/referrals/referrals"
+
+
 export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { isPanelOpen: boolean; closePanel: () => void; openPanel: (path: string, content: React.ReactNode) => void }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const router = useRouter();
@@ -50,8 +52,12 @@ export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { i
   };
 
   return (
-    <nav className="bg-black p-4 fixed top-0 left-0 w-full z-50 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav style={
+      {
+        padding:"4px"
+      }
+    } className="bg-black p-4 fixed top-0 left-0 w-full z-50 shadow-md">
+      <div style={{paddingInline:"40px"}} className="containery mx-auto flex justify-between items-center">
         <h1
           onClick={() => router.push("/dashboard")}
           className="text-3xl font-bold tracking-wide text-white emblema-one-regular cursor-pointer"
@@ -60,20 +66,20 @@ export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { i
         </h1>
 
               {/* Desktop Navigation */}
-               <div className="hidden md:flex space-x-6 text-white">
-            <button onClick={() => handlePanelLink("myurls", <MyURLs/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
+          <div style={{display: "flex", justifyContent: "center", alignItems: "center", gap: "2rem"}} className="hidden md:flex space-x-6 text-white">
+            <button style={{paddingInline:"10px"}} onClick={() => handlePanelLink("myurls", <MyURLs/>)} className={`px-7 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
               pathname === "/dashboard/myurls/myurls" ? "text-green-400" : ""
             }`}>
               My URLs
             </button>
            
-           <button onClick={() => handlePanelLink("referrals", <Referrals/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
+           <button style={{paddingInline:"10px"}} onClick={() => handlePanelLink("referrals", <Referrals/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
               pathname === "/dashboard/referrals/referrals" ? "text-green-400" : ""
             }`}>
-              Refferals
+              Referrals
             </button>
-            <div className="relative group">
-             <button onClick={() => handlePanelLink("myurls", <MyURLs/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
+            <div  className="relative group">
+             <button style={{paddingInline:"10px"}} onClick={() => handlePanelLink("myurls", <MyURLs/>)} className={`px-3 py-1 cursor-pointer rounded hover:bg-white hover:text-black  transition doto font-bold ${
               pathname === "/dashboard/myurls/myurls" ? "text-green-400" : ""
             }`}>
                 Blog
@@ -94,17 +100,19 @@ export default function DashboardNav({ isPanelOpen, closePanel, openPanel }: { i
 
         {/* User info on desktop */}
         {user && (
-          <div className="hidden md:flex rock-salt-regular items-center text-white space-x-4">
-            <div className="flex items-center">
+          <div style={{paddingInline:"10px",gap:"15px"}} className="hidden md:flex rock-salt-regular items-center text-white space-x-4">
+            <div style={{gap:"5px"}} className="flex items-center">
+              <span style={{padding: "4px", borderRadius: "50%", backgroundColor: "#fff", color: "#000"}}>
               <User className="h-5 w-5 mr-2" />
+              </span>
               <span>{user.name}</span>
             </div>
-            <button
+            <button style={{paddingInline:"10px", paddingBlock:"5px"}}
               onClick={handleLogout}
               className="bg-black px-3 py-1 rounded hover:bg-white hover:text-black transition flex items-center"
             >
               <LogOut className="h-4 w-4 mr-1" />
-              Logout
+              {/* Logout */}
             </button>
           </div>
         )}

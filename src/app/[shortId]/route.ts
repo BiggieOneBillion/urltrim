@@ -40,7 +40,6 @@ export async function GET(
       );
       
        if (!response.ok) {
-      console.log(`Geolocation API failed with status: ${response.status}`);
       return null; // Return null instead of throwing an error
     }
       

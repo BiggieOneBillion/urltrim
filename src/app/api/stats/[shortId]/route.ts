@@ -129,7 +129,6 @@ const uniqueVisitorsPerDay = Object.entries(uniqueVisitorsByDay).reduce((acc, [d
     // Top N lists
     const topCountries = getTopN(geographicDistribution);
     const topCities = getTopN(getDistribution(visits.map(v => v.city)));
-console.log(continentDistribution,"continentDistribution")
     return NextResponse.json({
       shortId: url.shortId,
       shortUrl: url.shortUrl,
